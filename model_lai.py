@@ -19,7 +19,7 @@ def z_assign(y, t):
         return None
 
 
-def build(x, y, t, method=GradientBoostingClassifier, **kwargs):
+def fit(x, y, t, method=GradientBoostingClassifier, **kwargs):
     """Training a model according to the "Lai's Approach"
     The default model is Gradient Boosting Machine (gbm)
 

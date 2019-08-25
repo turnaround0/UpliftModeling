@@ -2,7 +2,7 @@ import pandas as pd
 from sklearn.linear_model import LinearRegression, LogisticRegression
 
 
-def build(x, y, t, method=LogisticRegression, **kwargs):
+def fit(x, y, t, method=LogisticRegression, **kwargs):
     """Training a model according to the "Two Model Approach"
     (a.k.a. "Separate Model Approach")
     The default model is General Linear Model (GLM)

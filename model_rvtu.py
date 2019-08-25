@@ -19,7 +19,7 @@ def z_assign(y, t):
         return None
 
 
-def build(x, y, t, method=LogisticRegression, **kwargs):
+def fit(x, y, t, method=LogisticRegression, **kwargs):
     """Transforming the data according to the "Jaskowski's Approach"
     Sometimes, it called Response Variable Transformation for Uplift (RVTU)
 

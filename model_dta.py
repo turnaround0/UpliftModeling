@@ -2,7 +2,7 @@ from sklearn.linear_model import LogisticRegression
 import pandas as pd
 
 
-def build(x, y, t, method=LogisticRegression, **kwargs):
+def fit(x, y, t, method=LogisticRegression, **kwargs):
     """Training a model according to the "Dummy Treatment Approach" 
     The default model is General Linear Model (GLM)
 

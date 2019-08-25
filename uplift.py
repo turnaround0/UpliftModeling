@@ -8,6 +8,7 @@ from sklearn.model_selection import train_test_split, StratifiedKFold, KFold
 from preprocess import preprocess_data, assign_data
 from tune import parameter_tuning, wrapper
 
+import model_tma, model_tree, model_lai, model_glai, model_rvtu, model_dta
 
 # Hyper-parameters
 search_space = {
@@ -16,6 +17,15 @@ search_space = {
     'penalty': ['none', 'l2'],
     'tol': [1e-2, 1e-3, 1e-4],
     'C': [1e6, 1e3, 1, 1e-3, 1e-6],
+}
+
+models = {
+    'tma': model_tma,
+    # 'dta': model_dta,
+    # 'lai': model_lai,
+    # 'glai': model_glai,
+    # 'rvtu': model_rvtu,
+    # 'tree': model_tree,
 }
 
 
@@ -60,69 +70,72 @@ def main():
 
     # Cross-validation with K-fold
     qini_list = []
-    for idx, (train_index, test_index) in enumerate(fold_gen):
-        X_train = X.reindex(train_index)
-        X_test = X.reindex(test_index)
-        Y_train = Y.reindex(train_index)
-        Y_test = Y.reindex(test_index)
-        T_train = T.reindex(train_index)
-        T_test = T.reindex(test_index)
+    for model_name in models:
+        fit = models[model_name].fit
+        predict = models[model_name].predict
 
-        if enable_wrapper:
-            df = X_train.copy()
-            df['Y'] = Y_train
-            df['T'] = T_train
-            stratify = T_train
-            if dataset_name == 'hillstrom':
-                stratify = df[['Y', 'T']]
-            tuning_df, validate_df = train_test_split(
-                df, test_size=p_test, random_state=seed, stratify=stratify)
+        for idx, (train_index, test_index) in enumerate(fold_gen):
+            X_train = X.reindex(train_index)
+            X_test = X.reindex(test_index)
+            Y_train = Y.reindex(train_index)
+            Y_test = Y.reindex(test_index)
+            T_train = T.reindex(train_index)
+            T_test = T.reindex(test_index)
 
-            X_tuning = tuning_df.drop(['Y', 'T'], axis=1)
-            Y_tuning = tuning_df['Y']
-            T_tuning = tuning_df['T']
+            if enable_wrapper:
+                df = X_train.copy()
+                df['Y'] = Y_train
+                df['T'] = T_train
+                stratify = T_train
+                if dataset_name == 'hillstrom':
+                    stratify = df[['Y', 'T']]
+                tuning_df, validate_df = train_test_split(
+                    df, test_size=p_test, random_state=seed, stratify=stratify)
 
-            X_validate = validate_df.drop(['Y', 'T'], axis=1)
-            Y_validate = validate_df['Y']
-            T_validate = validate_df['T']
+                X_tuning = tuning_df.drop(['Y', 'T'], axis=1)
+                Y_tuning = tuning_df['Y']
+                T_tuning = tuning_df['T']
 
-            data_dict = {
-                "x_train": X_tuning,
-                "y_train": Y_tuning,
-                "t_train": T_tuning,
-                "x_test": X_validate,
-                "y_test": Y_validate,
-                "t_test": T_validate,
-            }
+                X_validate = validate_df.drop(['Y', 'T'], axis=1)
+                Y_validate = validate_df['Y']
+                T_validate = validate_df['T']
 
-            model_method = search_space.get('method', None)
-            params = {
-                'method': None if model_method is None else model_method[0],
-            }
-            if params['method'] == LogisticRegression:
-                solver = search_space.get('solver', None)
-                params['solver'] = None if solver is None else solver[0]
+                data_dict = {
+                    "x_train": X_tuning,
+                    "y_train": Y_tuning,
+                    "t_train": T_tuning,
+                    "x_test": X_validate,
+                    "y_test": Y_validate,
+                    "t_test": T_validate,
+                }
 
-            _, drop_vars, qini_values = wrapper(
-                    tma, predict_tma, data_dict, params=params)
-            best_qini = max(qini_values)
-            best_idx = qini_values.index(best_qini)
-            best_drop_vars = drop_vars[:best_idx]
+                model_method = search_space.get('method', None)
+                params = {
+                    'method': None if model_method is None else model_method[0],
+                }
+                if params['method'] == LogisticRegression:
+                    solver = search_space.get('solver', None)
+                    params['solver'] = None if solver is None else solver[0]
 
-            X_tuning.drop(best_drop_vars, axis=1, inplace=True)
-            X_validate.drop(best_drop_vars, axis=1, inplace=True)
-            X_train.drop(best_drop_vars, axis=1, inplace=True)
-            X_test.drop(best_drop_vars, axis=1, inplace=True)
+                _, drop_vars, qini_values = wrapper(fit, predict, data_dict, params=params)
+                best_qini = max(qini_values)
+                best_idx = qini_values.index(best_qini)
+                best_drop_vars = drop_vars[:best_idx]
 
-        if enable_tune_parameters:
-            _, best_params = parameter_tuning(tma, predict_tma, data_dict,
-                                              search_space=search_space)
-        best_params = {}
-        mdl = uplift_tree(X_train, Y_train, T_train, **best_params)
-        pred = predict_tree(mdl, X_test)
-        perf = performance(pred['pr_y1_t1'], pred['pr_y1_t0'], Y_test, T_test)
-        q = qini(perf)
-        qini_list.append(q['qini'])
+                X_tuning.drop(best_drop_vars, axis=1, inplace=True)
+                X_validate.drop(best_drop_vars, axis=1, inplace=True)
+                X_train.drop(best_drop_vars, axis=1, inplace=True)
+                X_test.drop(best_drop_vars, axis=1, inplace=True)
+
+            if enable_tune_parameters:
+                _, best_params = parameter_tuning(fit, predict, data_dict,
+                                                  search_space=search_space)
+            best_params = {}
+            mdl = uplift_tree(X_train, Y_train, T_train, **best_params)
+            pred = predict_tree(mdl, X_test)
+            perf = performance(pred['pr_y1_t1'], pred['pr_y1_t0'], Y_test, T_test)
+            q = qini(perf)
+            qini_list.append(q['qini'])
 
     print('Qini values: ', qini_list)
     print('    mean: {}, std: {}'.format(np.mean(qini_list), np.std(qini_list)))
