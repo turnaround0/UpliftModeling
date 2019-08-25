@@ -2,13 +2,13 @@
 import numpy as np
 import pandas as pd
 
-from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split, StratifiedKFold, KFold
 
 from preprocess import preprocess_data, assign_data
 from tune import parameter_tuning, wrapper
 
-import model_tma, model_tree, model_lai, model_glai, model_rvtu, model_dta
+from models import model_tma
 
 # Hyper-parameters
 search_space = {
@@ -26,6 +26,7 @@ models = {
     # 'glai': model_glai,
     # 'rvtu': model_rvtu,
     # 'tree': model_tree,
+    # 'urf': model_rf,
 }
 
 
