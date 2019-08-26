@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split, StratifiedKFold, KFold
 from preprocess import preprocess_data, assign_data
 from tune import parameter_tuning, wrapper
 from experiment import performance, qini
-from models import model_tma
+from models import model_rf
 
 # Hyper-parameters
 search_space = {
@@ -38,14 +38,32 @@ search_space = {
 # }
 
 models = {
-    'tma': model_tma,
+    # 'tma': model_tma,
     # 'dta': model_dta,
     # 'lai': model_lai,
     # 'glai': model_glai,
     # 'rvtu': model_rvtu,
-    # 'tree': model_tree,
-    # 'urf': model_rf,
+    'urf_ed': model_rf,
+    'urf_kl': model_rf,
+    'urf_chisq': model_rf,
+    'urf_int': model_rf,
 }
+
+urf_methods = {
+    'urf_ed': 'ed',
+    'urf_kl': 'kl',
+    'urf_chisq': 'chisq',
+    'urf_int': 'int'
+}
+
+
+def insert_urf_method(model_name):
+    print(model_name)
+    print(urf_methods.keys())
+    if model_name in urf_methods.keys():
+        return {'method': urf_methods[model_name]}
+    else:
+        return {}
 
 
 def load_data(dataset_name):
@@ -159,9 +177,15 @@ def main():
                     q_list.append(q)
                     print("Best_params: ", best_params)
                     """
+                else:
+                    best_params = {}
+            else:
+                best_params = {}
+
+            best_params.update(insert_urf_method(model_name))
+            print(best_params)
 
             # Train model and predict outcomes
-            best_params = {}
             mdl = fit(X_train, Y_train, T_train, **best_params)
             pred = predict(mdl, X_test)
 
