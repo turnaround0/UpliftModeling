@@ -2,7 +2,7 @@
 import numpy as np
 import pandas as pd
 import time
-import pickle
+import json
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split, StratifiedKFold, KFold
@@ -36,14 +36,14 @@ def load_data(dataset_name):
         return None
 
 
-def save_obj(obj, name):
-    with open(name + '.pkl', 'wb') as f:
-        pickle.dump(obj, f)
+def save_json(name, data):
+    with open(name + '.json', 'w') as f:
+        json.dump(data, f)
 
 
-def load_obj(name):
-    with open(name + '.pkl', 'rb') as f:
-        return pickle.load(f)
+def load_json(name):
+    with open(name + '.json', 'r') as f:
+        return json.load(f)
 
 
 def main():
@@ -203,21 +203,14 @@ def main():
     print(var_sel_dict)
     print(qini_dict)
 
-    save_obj(var_sel_dict, 'val_sel')
-    save_obj(qini_dict, 'qini')
+    save_json('val_sel', var_sel_dict)
+    save_json('qini', qini_dict)
 
     plot_fig5(var_sel_dict)
     plot_table6(qini_dict)
     plot_fig7(qini_dict)
     # plot_fig8(qini_dict)
     plot_fig9(qini_dict)
-
-
-    """
-    print("Method: {}".format(method))
-    print("search space:", search_space)
-    qini_list = [q['qini'] for q in q_list]
-    """
 
 
 if __name__ == '__main__':
