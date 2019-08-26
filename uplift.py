@@ -11,6 +11,18 @@ from tune import parameter_tuning, wrapper
 from experiment import performance, qini
 from models import model_tma, model_dta, model_lai, model_glai, model_rvtu, model_rf
 
+models = {
+    'tma': model_tma,
+    # 'dta': model_dta,
+    # 'lai': model_lai,
+    # 'glai': model_glai,
+    # 'trans': model_rvtu,
+    # 'urf_ed': model_rf,
+    # 'urf_kl': model_rf,
+    # 'urf_chisq': model_rf,
+    # 'urf_int': model_rf,
+}
+
 # Hyper-parameters
 search_space = {
     'method': [LogisticRegression],
@@ -21,34 +33,20 @@ search_space = {
     'max_iter': 10000,
 }
 
-
-# Search space for tree
-# search_space = {
-#     'ntree': [10, ],
-#     'mtry': [3, ],
-#     'bagging_fraction': [0.6, ],
-#     'method': ['ED',],
-#     'max_depth': [10, ],
-#     'min_split': [1000, ],
-#     'min_bucket_t0': [100,],
-#     'min_bucket_t1': [100,],
-# }
+search_space_for_tree = {
+    'ntree': [10, ],
+    'mtry': [3, ],
+    'bagging_fraction': [0.6, ],
+    'method': ['ED', ],
+    'max_depth': [10, ],
+    'min_split': [1000, ],
+    'min_bucket_t0': [100, ],
+    'min_bucket_t1': [100, ],
+}
 
 # Search space for dta
-# search_space = {
-#     'solver': ['liblinear', ],
-# }
-
-models = {
-    'tma': model_tma,
-    'dta': model_dta,
-    # 'lai': model_lai,
-    # 'glai': model_glai,
-    'trans': model_rvtu,
-    # 'urf_ed': model_rf,
-    # 'urf_kl': model_rf,
-    # 'urf_chisq': model_rf,
-    # 'urf_int': model_rf,
+search_space_for_dta = {
+    'solver': ['liblinear', ],
 }
 
 urf_methods = {
@@ -57,6 +55,8 @@ urf_methods = {
     'urf_chisq': 'chisq',
     'urf_int': 'int'
 }
+
+wrapper_models = ['tma', 'dta', 'trans']
 
 
 def insert_urf_method(model_name):
@@ -87,7 +87,6 @@ def main():
     n_fold = 5
     p_test = 0.33
     enable_tune_parameters = False
-    enable_wrapper = False
 
     start_time = time.time()
 
@@ -100,8 +99,9 @@ def main():
     qini_dict = {}
     for model_name in models:
         print('* Model:', model_name)
-        qini_dict[model_name] = {}
+        qini_dict[model_name] = []
         qini_list = []
+        enable_wrapper = model_name in wrapper_models
 
         fit = models[model_name].fit
         predict = models[model_name].predict
@@ -159,6 +159,7 @@ def main():
 
                 if enable_wrapper:
                     wrapper_start_time = time.time()
+                    print('Start wrapper variable selection')
 
                     model_method = search_space.get('method', None)
                     params = {
@@ -184,6 +185,7 @@ def main():
 
                 if enable_tune_parameters:
                     tune_start_time = time.time()
+                    print('Start parameter tuning')
 
                     _, best_params = parameter_tuning(fit, predict, data_dict,
                                                       search_space=search_space)
@@ -212,7 +214,7 @@ def main():
             q = qini(perf, plotit=False)
 
             print('Qini =', q['qini'])
-            qini_dict[model_name][idx + 1] = q
+            qini_dict[model_name].append(q)
             qini_list.append(q['qini'])
 
             fold_end_time = time.time()
