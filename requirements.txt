@@ -1,7 +1,4 @@
 alabaster==0.7.12
-anaconda-client==1.7.2
-anaconda-navigator==1.9.6
-anaconda-project==0.8.2
 asn1crypto==0.24.0
 astroid==2.1.0
 astropy==3.1
@@ -14,7 +11,6 @@ backports.shutil-get-terminal-size==1.0.0
 beautifulsoup4==4.6.3
 bitarray==0.8.3
 bkcharts==0.2
-blaze==0.11.3
 bleach==3.0.2
 bokeh==1.0.2
 boto==2.49.0
@@ -24,18 +20,13 @@ cffi==1.11.5
 chardet==3.0.4
 Click==7.0
 cloudpickle==0.6.1
-clyent==1.2.2
 colorama==0.4.1
-conda==4.5.12
-conda-build==3.17.6
-conda-verify==3.1.1
 contextlib2==0.5.5
 cryptography==2.4.2
 cycler==0.10.0
 Cython==0.29.2
 cytoolz==0.9.0.1
 dask==1.0.0
-datashape==0.5.4
 decorator==4.3.0
 defusedxml==0.5.0
 distributed==1.25.1
@@ -87,8 +78,6 @@ MarkupSafe==1.1.0
 matplotlib==3.0.2
 mccabe==0.6.1
 mistune==0.8.4
-mkl-fft==1.0.6
-mkl-random==1.0.2
 more-itertools==4.3.0
 mpmath==1.1.0
 msgpack==0.5.6
