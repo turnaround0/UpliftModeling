@@ -42,13 +42,13 @@ search_space = {
 models = {
     'tma': model_tma,
     'dta': model_dta,
-    'lai': model_lai,
-    'glai': model_glai,
+    # 'lai': model_lai,
+    # 'glai': model_glai,
     'trans': model_rvtu,
-    'urf_ed': model_rf,
-    'urf_kl': model_rf,
-    'urf_chisq': model_rf,
-    'urf_int': model_rf,
+    # 'urf_ed': model_rf,
+    # 'urf_kl': model_rf,
+    # 'urf_chisq': model_rf,
+    # 'urf_int': model_rf,
 }
 
 urf_methods = {
@@ -96,22 +96,26 @@ def main():
     df = preprocess_data(df)
     X, Y, T, ty = assign_data(df)
 
-    # Create K-fold generator
-    if dataset_name == 'hillstrom':
-        fold_gen = StratifiedKFold(n_splits=n_fold, shuffle=True, random_state=seed).split(X, ty)
-    elif dataset_name == 'lalonde':
-        fold_gen = KFold(n_splits=n_fold, shuffle=True, random_state=seed).split(X)
-    elif dataset_name == 'criteo':
-        fold_gen = KFold(n_splits=n_fold, shuffle=True, random_state=seed).split(X)
-    else:
-        print('Invalid dataset name!')
-        assert()
-
     # Cross-validation with K-fold
-    qini_list = []
+    qini_dict = {}
     for model_name in models:
+        print('* Model:', model_name)
+        qini_dict[model_name] = {}
+        qini_list = []
+
         fit = models[model_name].fit
         predict = models[model_name].predict
+
+        # Create K-fold generator
+        if dataset_name == 'hillstrom':
+            fold_gen = StratifiedKFold(n_splits=n_fold, shuffle=True, random_state=seed).split(X, ty)
+        elif dataset_name == 'lalonde':
+            fold_gen = KFold(n_splits=n_fold, shuffle=True, random_state=seed).split(X)
+        elif dataset_name == 'criteo':
+            fold_gen = KFold(n_splits=n_fold, shuffle=True, random_state=seed).split(X)
+        else:
+            print('Invalid dataset name!')
+            assert ()
 
         for idx, (train_index, test_index) in enumerate(fold_gen):
             print('Fold #{}'.format(idx + 1))
@@ -207,18 +211,21 @@ def main():
             perf = performance(pred['pr_y1_t1'], pred['pr_y1_t0'], Y_test, T_test)
             q = qini(perf, plotit=False)
 
-            print('Qini = ', q)
-
+            print('Qini =', q['qini'])
+            qini_dict[model_name][idx + 1] = q
             qini_list.append(q['qini'])
 
             fold_end_time = time.time()
             print('Fold time:', fold_end_time - fold_start_time)
 
+        print('Qini values: ', qini_list)
+        print('    mean: {}, std: {}'.format(np.mean(qini_list), np.std(qini_list)))
+
     end_time = time.time()
     print('Total time:', end_time - start_time)
 
-    print('Qini values: ', qini_list)
-    print('    mean: {}, std: {}'.format(np.mean(qini_list), np.std(qini_list)))
+    print(qini_dict)
+
 
     """
     print("Method: {}".format(method))
