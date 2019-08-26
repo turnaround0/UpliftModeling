@@ -2,63 +2,17 @@
 import numpy as np
 import pandas as pd
 import time
+import pickle
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split, StratifiedKFold, KFold
 
+from config import models, search_space, urf_methods, wrapper_models
 from preprocess import preprocess_data, assign_data
 from tune import parameter_tuning, wrapper
 from experiment import performance, qini
-from models import model_tma, model_dta, model_lai, model_glai, model_rvtu, model_rf
 
 from plot import plot_fig5, plot_table6, plot_fig7, plot_fig8, plot_fig9
-
-models = {
-    # 'tma': model_tma,
-    # 'dta': model_dta,
-    # 'lai': model_lai,
-    'glai': model_glai,
-    # 'trans': model_rvtu,
-    # 'urf_ed': model_rf,
-    # 'urf_kl': model_rf,
-    # 'urf_chisq': model_rf,
-    # 'urf_int': model_rf,
-}
-
-# Hyper-parameters
-search_space = {
-    'method': [LogisticRegression],
-    'solver': ['newton-cg', 'lbfgs', 'sag', 'saga'],
-    'penalty': ['none', 'l2'],
-    'tol': [1e-2, 1e-3, 1e-4],
-    'C': [1e6, 1e3, 1, 1e-3, 1e-6],
-    'max_iter': 3,
-}
-
-search_space_for_tree = {
-    'ntree': [10, ],
-    'mtry': [3, ],
-    'bagging_fraction': [0.6, ],
-    'method': ['ED', ],
-    'max_depth': [10, ],
-    'min_split': [1000, ],
-    'min_bucket_t0': [100, ],
-    'min_bucket_t1': [100, ],
-}
-
-# Search space for dta
-search_space_for_dta = {
-    'solver': ['liblinear', ],
-}
-
-urf_methods = {
-    'urf_ed': 'ed',
-    'urf_kl': 'kl',
-    'urf_chisq': 'chisq',
-    'urf_int': 'int'
-}
-
-wrapper_models = ['tma', 'dta', 'trans']
 
 
 def insert_urf_method(model_name):
@@ -80,6 +34,16 @@ def load_data(dataset_name):
         return pd.read_csv('criteo_small.csv')
     else:
         return None
+
+
+def save_obj(obj, name):
+    with open(name + '.pkl', 'wb') as f:
+        pickle.dump(obj, f)
+
+
+def load_obj(name):
+    with open(name + '.pkl', 'rb') as f:
+        return pickle.load(f)
 
 
 def main():
@@ -239,12 +203,13 @@ def main():
     print(var_sel_dict)
     print(qini_dict)
 
-    assert()
+    save_obj(var_sel_dict, 'val_sel')
+    save_obj(qini_dict, 'qini')
 
     plot_fig5(var_sel_dict)
     plot_table6(qini_dict)
     plot_fig7(qini_dict)
-    plot_fig8(qini_dict)
+    # plot_fig8(qini_dict)
     plot_fig9(qini_dict)
 
 
