@@ -1,9 +1,6 @@
 import pandas as pd
 
 
-
-
-
 def preprocess_data(df, dataset='hillstrom', verbose=True):
     # For Hillstrom dataset, the ‘‘visit’’ target variable was selected
     #   as the target variable of interest and the selected treatment is
