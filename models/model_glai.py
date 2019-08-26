@@ -31,7 +31,7 @@ def fit(x, y, t, method=GradientBoostingClassifier, **kwargs):
     return model
 
 
-def predict(obj, newdata, y, t, **kwargs):
+def predict(obj, newdata, **kwargs):
     """Predictions according to the "Lai's Approach"
 
     Source: "Influential Marketing" (Lai, 2006) and "Mining Truly Responsive
@@ -46,6 +46,7 @@ def predict(obj, newdata, y, t, **kwargs):
         dataframe: A dataframe with predictions for when the instances are
             treated and for when they are not treated.
     """
+    t = kwargs.get('T')
     prob_T = sum(t) / len(t)
     prob_C = 1 - prob_T
 

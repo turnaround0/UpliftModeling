@@ -14,10 +14,10 @@ from models import model_tma, model_dta, model_lai, model_glai, model_rvtu, mode
 from plot import plot_fig5, plot_table6, plot_fig7, plot_fig8, plot_fig9
 
 models = {
-    'tma': model_tma,
-    'dta': model_dta,
+    # 'tma': model_tma,
+    # 'dta': model_dta,
     # 'lai': model_lai,
-    # 'glai': model_glai,
+    'glai': model_glai,
     # 'trans': model_rvtu,
     # 'urf_ed': model_rf,
     # 'urf_kl': model_rf,
@@ -214,8 +214,10 @@ def main():
             best_params.update(insert_urf_method(model_name))
 
             # Train model and predict outcomes
+            args = {'T': T_test}
+
             mdl = fit(X_train, Y_train, T_train, **best_params)
-            pred = predict(mdl, X_test)
+            pred = predict(mdl, X_test, **args)
 
             # Perform to check performance with Qini curve
             perf = performance(pred['pr_y1_t1'], pred['pr_y1_t0'], Y_test, T_test)
@@ -236,6 +238,8 @@ def main():
 
     print(var_sel_dict)
     print(qini_dict)
+
+    assert()
 
     plot_fig5(var_sel_dict)
     plot_table6(qini_dict)

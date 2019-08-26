@@ -47,7 +47,7 @@ def fit(x, y, t, method=GradientBoostingClassifier, **kwargs):
     return model
 
 
-def predict(obj, newdata, y, t, **kwargs):
+def predict(obj, newdata, **kwargs):
     """Predictions according to the "Lai's Approach"
 
     Source: "Influential Marketing" (Lai, 2006) and "Mining Truly Responsive
