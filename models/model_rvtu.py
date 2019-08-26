@@ -37,7 +37,7 @@ def fit(x, y, t, method=LogisticRegression, **kwargs):
     return mdl
 
 
-def predict(obj, newdata, y, t, **kwargs):
+def predict(obj, newdata, **kwargs):
     # df = pd.DataFrame({'y': y.copy()})
     # df['ct'] = ct
     # z = df.apply(lambda row: z_assign(row['y'], row['ct']), axis=1)
