@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import numpy as np
 import pandas as pd
+import time
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split, StratifiedKFold, KFold
@@ -88,6 +89,8 @@ def main():
     enable_tune_parameters = False
     enable_wrapper = False
 
+    start_time = time.time()
+
     # Load data with preprocessing
     df = load_data(dataset_name)
     df = preprocess_data(df)
@@ -111,6 +114,9 @@ def main():
         predict = models[model_name].predict
 
         for idx, (train_index, test_index) in enumerate(fold_gen):
+            print('Fold #{}'.format(idx + 1))
+            fold_start_time = time.time()
+
             X_train = X.reindex(train_index)
             X_test = X.reindex(test_index)
             Y_train = Y.reindex(train_index)
@@ -148,6 +154,8 @@ def main():
                 }
 
                 if enable_wrapper:
+                    wrapper_start_time = time.time()
+
                     model_method = search_space.get('method', None)
                     params = {
                         'method': None if model_method is None else model_method[0],
@@ -167,10 +175,17 @@ def main():
                     X_train.drop(best_drop_vars, axis=1, inplace=True)
                     X_test.drop(best_drop_vars, axis=1, inplace=True)
 
+                    wrapper_end_time = time.time()
+                    print('Wrapper time:', wrapper_end_time - wrapper_start_time)
+
                 if enable_tune_parameters:
+                    tune_start_time = time.time()
+
                     _, best_params = parameter_tuning(fit, predict, data_dict,
                                                       search_space=search_space)
 
+                    tune_end_time = time.time()
+                    print('Tune time:', tune_end_time - tune_start_time)
                     """
                     best_params = {k: v[0] for k, v in search_space.items()}
                     q = qini(perf)
@@ -191,7 +206,16 @@ def main():
             # Perform to check performance with Qini curve
             perf = performance(pred['pr_y1_t1'], pred['pr_y1_t0'], Y_test, T_test)
             q = qini(perf, plotit=False)
+
+            print('Qini = ', q)
+
             qini_list.append(q['qini'])
+
+            fold_end_time = time.time()
+            print('Fold time:', fold_end_time - fold_start_time)
+
+    end_time = time.time()
+    print('Total time:', end_time - start_time)
 
     print('Qini values: ', qini_list)
     print('    mean: {}, std: {}'.format(np.mean(qini_list), np.std(qini_list)))
