@@ -25,7 +25,7 @@ def fit(x, y, t, ntree=10, bagging_fraction=0.6, random_seed=1234, **kwargs):
     return trees
 
 
-def build(obj, newdata, **kwargs):
+def predict(obj, newdata, **kwargs):
     pred_trees = []
     for tree in obj:
         pred_trees.append(test_predictions(tree, newdata))
