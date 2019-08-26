@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split, StratifiedKFold, KFold
 from preprocess import preprocess_data, assign_data
 from tune import parameter_tuning, wrapper
 from experiment import performance, qini
-from models import model_rf
+from models import model_tma, model_dta, model_lai, model_glai, model_rvtu, model_rf
 
 # Hyper-parameters
 search_space = {
@@ -38,11 +38,11 @@ search_space = {
 # }
 
 models = {
-    # 'tma': model_tma,
-    # 'dta': model_dta,
-    # 'lai': model_lai,
-    # 'glai': model_glai,
-    # 'rvtu': model_rvtu,
+    'tma': model_tma,
+    'dta': model_dta,
+    'lai': model_lai,
+    'glai': model_glai,
+    'trans': model_rvtu,
     'urf_ed': model_rf,
     'urf_kl': model_rf,
     'urf_chisq': model_rf,
@@ -58,8 +58,6 @@ urf_methods = {
 
 
 def insert_urf_method(model_name):
-    print(model_name)
-    print(urf_methods.keys())
     if model_name in urf_methods.keys():
         return {'method': urf_methods[model_name]}
     else:
@@ -183,7 +181,6 @@ def main():
                 best_params = {}
 
             best_params.update(insert_urf_method(model_name))
-            print(best_params)
 
             # Train model and predict outcomes
             mdl = fit(X_train, Y_train, T_train, **best_params)
