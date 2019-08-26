@@ -150,6 +150,7 @@ def main():
                     model_method = search_space.get('method', None)
                     params = {
                         'method': None if model_method is None else model_method[0],
+                        'tol': 1e-2,
                     }
                     if params['method'] == LogisticRegression:
                         solver = search_space.get('solver', None)
