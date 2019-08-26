@@ -11,9 +11,11 @@ from tune import parameter_tuning, wrapper
 from experiment import performance, qini
 from models import model_tma, model_dta, model_lai, model_glai, model_rvtu, model_rf
 
+from plot import plot_fig5, plot_table6, plot_fig7, plot_fig8, plot_fig9
+
 models = {
     'tma': model_tma,
-    # 'dta': model_dta,
+    'dta': model_dta,
     # 'lai': model_lai,
     # 'glai': model_glai,
     # 'trans': model_rvtu,
@@ -30,7 +32,7 @@ search_space = {
     'penalty': ['none', 'l2'],
     'tol': [1e-2, 1e-3, 1e-4],
     'C': [1e6, 1e3, 1, 1e-3, 1e-6],
-    'max_iter': 10000,
+    'max_iter': 3,
 }
 
 search_space_for_tree = {
@@ -84,7 +86,7 @@ def main():
     # Parameters
     dataset_name = 'hillstrom'
     seed = 1234
-    n_fold = 5
+    n_fold = 2
     p_test = 0.33
     enable_tune_parameters = False
 
@@ -97,8 +99,11 @@ def main():
 
     # Cross-validation with K-fold
     qini_dict = {}
+    var_sel_dict = {}
     for model_name in models:
         print('* Model:', model_name)
+
+        var_sel_dict[model_name] = []
         qini_dict[model_name] = []
         qini_list = []
         enable_wrapper = model_name in wrapper_models
@@ -165,6 +170,7 @@ def main():
                     params = {
                         'method': None if model_method is None else model_method[0],
                         'tol': 1e-2,
+                        'max_iter': 3,
                     }
                     if params['method'] == LogisticRegression:
                         solver = search_space.get('solver', None)
@@ -174,6 +180,8 @@ def main():
                     best_qini = max(qini_values)
                     best_idx = qini_values.index(best_qini)
                     best_drop_vars = drop_vars[:best_idx]
+
+                    var_sel_dict[model_name].append(qini_values)
 
                     X_tuning.drop(best_drop_vars, axis=1, inplace=True)
                     X_validate.drop(best_drop_vars, axis=1, inplace=True)
@@ -226,7 +234,14 @@ def main():
     end_time = time.time()
     print('Total time:', end_time - start_time)
 
+    print(var_sel_dict)
     print(qini_dict)
+
+    plot_fig5(var_sel_dict)
+    plot_table6(qini_dict)
+    plot_fig7(qini_dict)
+    plot_fig8(qini_dict)
+    plot_fig9(qini_dict)
 
 
     """
