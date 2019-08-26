@@ -17,6 +17,7 @@ search_space = {
     'penalty': ['none', 'l2'],
     'tol': [1e-2, 1e-3, 1e-4],
     'C': [1e6, 1e3, 1, 1e-3, 1e-6],
+    'max_iter': 10000,
 }
 
 
