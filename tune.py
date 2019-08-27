@@ -38,7 +38,7 @@ def parameter_tuning(fit_mdl, pred_mdl, data, search_space, plotit=False):
 
     keys = search_space.keys()
     n_space = [len(search_space[key]) for key in keys]
-    n_iter = np.prod(n_space)
+    n_iter = int(np.prod(n_space))
 
     best_params = None
     for i in range(n_iter):
@@ -48,7 +48,7 @@ def parameter_tuning(fit_mdl, pred_mdl, data, search_space, plotit=False):
             i = int(i / n_space[idx])
 
         mdl = fit_mdl(x_train, y_train, t_train, **params)
-        pred = pred_mdl(mdl, newdata=x_test, y=y_test, ct=t_test)
+        pred = pred_mdl(mdl, newdata=x_test, y=y_test, t=t_test)
         # print('    {}'.format(params))
         try:
             perf = performance(pred['pr_y1_t1'], pred['pr_y1_t0'], y_test, t_test)
@@ -115,7 +115,7 @@ def wrapper(fit_mdl, pred_mdl, data, params=None,
         mdl = fit_mdl(x, y_train, t_train, **params)
         x = x_test.copy()
         x.drop(drop_variables + [var], axis=1, inplace=True)
-        pred = pred_mdl(mdl, newdata=x, y=y_test, ct=t_test)
+        pred = pred_mdl(mdl, newdata=x, y=y_test, t=t_test)
         perf = performance(pred['pr_y1_t1'], pred['pr_y1_t0'], y_test, t_test)
         q = qini(perf, plotit=False)['qini']
         if q > max_q:
