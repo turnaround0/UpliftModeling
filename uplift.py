@@ -217,7 +217,7 @@ def main():
                 args = {'T': T_test}
 
                 mdl = fit(X_train, Y_train, T_train, **best_params)
-                pred = predict(mdl, X_test, **args)
+                pred = predict(mdl, X_test, t=T_test, **args)
 
                 # Perform to check performance with Qini curve
                 perf = performance(pred['pr_y1_t1'], pred['pr_y1_t0'], Y_test, T_test)

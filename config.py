@@ -3,10 +3,10 @@ from sklearn.linear_model import LogisticRegression, LinearRegression
 from models import model_tma, model_dta, model_lai, model_glai, model_rvtu, model_rf
 
 models = {
-    'tma': model_tma,
+    #'tma': model_tma,
     #'dta': model_dta,
     #'lai': model_lai,
-    #'glai': model_glai,
+    'glai': model_glai,
     #'trans': model_rvtu,
     #'urf_ed': model_rf,
     #'urf_kl': model_rf,

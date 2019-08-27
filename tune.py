@@ -185,10 +185,10 @@ def do_niv_variable_selection(x, y, t):
         niv = niv_row.sum()
         niv_dict[col] = niv
         idx += 1
-        if idx > 300:
+        if idx > 200:
             break
 
     s_niv = pd.Series(niv_dict)
-    s_selected_niv = s_niv.sort_values(ascending=False)[: 10]
+    s_selected_niv = s_niv.sort_values(ascending=False)[: 12]
 
     return s_selected_niv.index
