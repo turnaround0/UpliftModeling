@@ -1,4 +1,4 @@
-from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import LogisticRegression, LinearRegression
 import pandas as pd
 
 
@@ -62,8 +62,12 @@ def predict(obj, newdata, y_name='y', t_name='treated', **kwargs):
     df_treat['treated'] = 1
     df_control['treated'] = 0
 
-    pred_treat = obj.predict_proba(df_treat)[:, 1]
-    pred_control = obj.predict_proba(df_control)[:, 1]
+    if isinstance(obj, LinearRegression):
+        pred_treat = obj.predict(df_treat)
+        pred_control = obj.predict(df_control)
+    else:
+        pred_treat = obj.predict_proba(df_treat)[:, 1]
+        pred_control = obj.predict_proba(df_control)[:, 1]
 
     pred_df = pd.DataFrame({
         "pr_y1_t1": pred_treat,
