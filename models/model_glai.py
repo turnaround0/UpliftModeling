@@ -46,7 +46,7 @@ def predict(obj, newdata, **kwargs):
         dataframe: A dataframe with predictions for when the instances are
             treated and for when they are not treated.
     """
-    t = kwargs.get('T')
+    t = kwargs.get('t')
     prob_T = sum(t) / len(t)
     prob_C = 1 - prob_T
 
