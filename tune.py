@@ -1,137 +1,233 @@
+#!/usr/bin/python3
 import numpy as np
+import pandas as pd
+import time
+import json
+
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split, StratifiedKFold, KFold
+
+from config import models, urf_methods, wrapper_models, get_search_space
+from preprocess import preprocess_data, assign_data
+from tune import parameter_tuning, wrapper
 from experiment import performance, qini
 
-
-def parameter_tuning(fit_mdl, pred_mdl, data, search_space, plotit=False):
-    """
-    Given a model, search all combination of parameter sets and find
-    the best parameter set
-
-    Args:
-        fit_mdl: model function
-        pred_mdl: predict function of fit_mdl
-        data:
-            {
-                "x_train": predictor variables of training dataset,
-                "y_train": target variables of training dataset,
-                "t_train": treatment variables of training dataset,
-                "x_test": predictor variables of test (usually, validation) dataset,
-                "y_test": target variables of test (usually, validation) dataset,
-                "t_test": treatment variables of test (usually, validation) dataset,
-            }
-        search_space:
-            {
-                parameter_name: [search values]
-            }
-    Return:
-        The best parameter set
-    """
-    x_train = data['x_train']
-    y_train = data['y_train']
-    t_train = data['t_train']
-    x_test = data['x_test']
-    y_test = data['y_test']
-    t_test = data['t_test']
-
-    max_q = -float('inf')
-    best_mdl = None
-
-    keys = search_space.keys()
-    n_space = [len(search_space[key]) for key in keys]
-    n_iter = int(np.prod(n_space))
-
-    best_params = None
-    for i in range(n_iter):
-        params = {}
-        for idx, key in enumerate(keys):
-            params[key] = search_space[key][i % n_space[idx]]
-            i = int(i / n_space[idx])
-
-        mdl = fit_mdl(x_train, y_train, t_train, **params)
-        pred = pred_mdl(mdl, newdata=x_test, y=y_test, t=t_test)
-        # print('    {}'.format(params))
-        try:
-            perf = performance(pred['pr_y1_t1'], pred['pr_y1_t0'], y_test, t_test)
-        except Exception as e:
-            print(e)
-            continue
-        q = qini(perf, plotit=plotit)['qini']
-        if plotit:
-            print(q, params)
-        if q > max_q:
-            max_q = q
-            best_mdl = mdl
-            best_params = params
-
-    return best_mdl, best_params
+from plot import plot_fig5, plot_table6, plot_fig7, plot_fig8, plot_fig9
 
 
-def wrapper(fit_mdl, pred_mdl, data, params=None,
-            best_models=None, drop_variables=None, qini_values=None):
-    """
-    General wrapper approach
-
-    Args:
-        fit_mdl: model function
-        pred_mdl: predict function of fit_mdl
-        data:
-            {
-                "x_train": predictor variables of training dataset,
-                "y_train": target variables of training dataset,
-                "t_train": treatment variables of training dataset,
-                "x_test": predictor variables of test (usually, validation) dataset,
-                "y_test": target variables of test (usually, validation) dataset,
-                "t_test": treatment variables of test (usually, validation) dataset,
-            }
-    Return:
-        (A list of best models, The list of dropped variables)
-    """
-    if best_models is None:
-        best_models = []
-    if drop_variables is None:
-        drop_variables = []
-    if qini_values is None:
-        qini_values = []
-    if params is None:
-        params = {}
-
-    x_train = data['x_train']
-    y_train = data['y_train']
-    t_train = data['t_train']
-    x_test = data['x_test']
-    y_test = data['y_test']
-    t_test = data['t_test']
-
-    variables = data['x_train'].columns
-
-    max_q = -float('inf')
-    drop_var = None
-    best_mdl = None
-    for var in variables:
-        if var in drop_variables:
-            continue
-        x = x_train.copy()
-        x.drop(drop_variables + [var], axis=1, inplace=True)
-        mdl = fit_mdl(x, y_train, t_train, **params)
-        x = x_test.copy()
-        x.drop(drop_variables + [var], axis=1, inplace=True)
-        pred = pred_mdl(mdl, newdata=x, y=y_test, t=t_test)
-        perf = performance(pred['pr_y1_t1'], pred['pr_y1_t0'], y_test, t_test)
-        q = qini(perf, plotit=False)['qini']
-        if q > max_q:
-            max_q = q
-            drop_var = var
-            best_mdl = mdl
-
-    best_models.append(best_mdl)
-    drop_variables.append(drop_var)
-    qini_values.append(max_q)
-
-    left_vars = [var for var in variables if (var not in drop_variables)]
-
-    if len(variables) == len(drop_variables) + 1:
-        return best_models, drop_variables + left_vars, qini_values
+def insert_urf_method(model_name):
+    if model_name in urf_methods.keys():
+        return {'method': urf_methods[model_name]}
     else:
-        return wrapper(fit_mdl, pred_mdl, data, params=params,
-                       best_models=best_models, drop_variables=drop_variables,
-                       qini_values=qini_values)
+        return {}
+
+
+def load_data(dataset_name):
+    # Link of hillstrom: https://drive.google.com/open?id=15osyN4c5z1pSo1JkxwL_N8bZTksRvQuU
+    # Link of lalonde: https://drive.google.com/open?id=1b8N7WtwIe2WmQJD1KL5UAy70K13MxwKj
+    # Link of criteo: https://drive.google.com/open?id=1Vxv7JiEyFr2A99xT6vYzB5ps5WhvV7NE
+    if dataset_name == 'hillstrom':
+        return pd.read_csv('Hillstrom.csv')
+    elif dataset_name == 'lalonde':
+        return pd.read_csv('Lalonde.csv')
+    elif dataset_name == 'criteo':
+        return pd.read_csv('criteo_small.csv')
+    else:
+        return None
+
+
+def save_json(name, data):
+    with open(name + '.json', 'w') as f:
+        json.dump(data, f)
+
+
+def load_json(name):
+    with open(name + '.json', 'r') as f:
+        return json.load(f)
+
+
+def main():
+    # Parameters
+    dataset_name = 'hillstrom'
+    seed = 1234
+    n_fold = 5
+    p_test = 0.33
+    enable_tune_parameters = True
+
+    start_time = time.time()
+
+    # Load data with preprocessing
+    df = load_data(dataset_name)
+    df = preprocess_data(df)
+    X, Y, T, ty = assign_data(df)
+
+    # Cross-validation with K-fold
+    qini_dict = {}
+    var_sel_dict = {}
+    for model_name in models:
+        print('* Model:', model_name)
+
+        var_sel_dict[model_name] = []
+        qini_dict[model_name] = []
+        qini_list = []
+        enable_wrapper = model_name in wrapper_models
+
+        fit = models[model_name].fit
+        predict = models[model_name].predict
+
+        search_space = get_search_space(model_name)
+
+        # Create K-fold generator
+        if dataset_name == 'hillstrom':
+            fold_gen = StratifiedKFold(n_splits=n_fold, shuffle=True, random_state=seed).split(X, ty)
+        elif dataset_name == 'lalonde':
+            fold_gen = KFold(n_splits=n_fold, shuffle=True, random_state=seed).split(X)
+        elif dataset_name == 'criteo':
+            fold_gen = KFold(n_splits=n_fold, shuffle=True, random_state=seed).split(X)
+        else:
+            print('Invalid dataset name!')
+            assert ()
+
+        for idx, (train_index, test_index) in enumerate(fold_gen):
+            print('Fold #{}'.format(idx + 1))
+            fold_start_time = time.time()
+
+            X_train = X.reindex(train_index)
+            X_test = X.reindex(test_index)
+            Y_train = Y.reindex(train_index)
+            Y_test = Y.reindex(test_index)
+            T_train = T.reindex(train_index)
+            T_test = T.reindex(test_index)
+
+            if enable_wrapper or enable_tune_parameters:
+                df = X_train.copy()
+                df['Y'] = Y_train
+                df['T'] = T_train
+
+                if dataset_name == 'hillstrom':
+                    stratify = df[['Y', 'T']]
+                else:
+                    stratify = T_train
+                tuning_df, validate_df = train_test_split(
+                    df, test_size=p_test, random_state=seed, stratify=stratify)
+
+                X_tuning = tuning_df.drop(['Y', 'T'], axis=1)
+                Y_tuning = tuning_df['Y']
+                T_tuning = tuning_df['T']
+
+                X_validate = validate_df.drop(['Y', 'T'], axis=1)
+                Y_validate = validate_df['Y']
+                T_validate = validate_df['T']
+
+                data_dict = {
+                    "x_train": X_tuning,
+                    "y_train": Y_tuning,
+                    "t_train": T_tuning,
+                    "x_test": X_validate,
+                    "y_test": Y_validate,
+                    "t_test": T_validate,
+                }
+
+                if enable_wrapper:
+                    wrapper_start_time = time.time()
+                    print('Start wrapper variable selection')
+
+                    model_method = search_space.get('method', None)
+                    params = {
+                        'method': None if model_method is None else model_method[0],
+                        'tol': 1e-2,
+                        'max_iter': 10000,
+                    }
+                    if params['method'] == LogisticRegression:
+                        solver = search_space.get('solver', None)
+                        params['solver'] = None if solver is None else solver[0]
+
+                    _, drop_vars, qini_values = wrapper(fit, predict, data_dict, params=params)
+                    best_qini = max(qini_values)
+                    best_idx = qini_values.index(best_qini)
+                    best_drop_vars = drop_vars[:best_idx]
+
+                    var_sel_dict[model_name].append(qini_values)
+
+                    X_tuning.drop(best_drop_vars, axis=1, inplace=True)
+                    X_validate.drop(best_drop_vars, axis=1, inplace=True)
+                    X_train.drop(best_drop_vars, axis=1, inplace=True)
+                    X_test.drop(best_drop_vars, axis=1, inplace=True)
+
+                    wrapper_end_time = time.time()
+                    print('Wrapper time:', wrapper_end_time - wrapper_start_time)
+
+                if enable_tune_parameters:
+                    tune_start_time = time.time()
+                    print('Start parameter tuning')
+                    print(search_space)
+
+                    _, best_params = parameter_tuning(fit, predict, data_dict,
+                                                      search_space=search_space)
+
+                    tune_end_time = time.time()
+                    print('Tune time:', tune_end_time - tune_start_time)
+                    print('Best Params:', best_params)
+                else:
+                    best_params = {}
+            else:
+                best_params = {}
+
+            best_params.update(insert_urf_method(model_name))
+
+            # Train model and predict outcomes
+            mdl = fit(X_train, Y_train, T_train, **best_params)
+            pred = predict(mdl, X_test, t=T_test)
+
+            # Perform to check performance with Qini curve
+            perf = performance(pred['pr_y1_t1'], pred['pr_y1_t0'], Y_test, T_test)
+            q = qini(perf, plotit=False)
+
+            print('Qini =', q['qini'])
+            qini_dict[model_name].append(q)
+            qini_list.append(q['qini'])
+
+            fold_end_time = time.time()
+            print('Fold time:', fold_end_time - fold_start_time)
+
+        print('Qini values: ', qini_list)
+        print('    mean: {}, std: {}'.format(np.mean(qini_list), np.std(qini_list)))
+
+    end_time = time.time()
+    print('Total time:', end_time - start_time)
+
+    # Save result to json file
+    save_json(dataset_name + '_val_sel', var_sel_dict)
+    save_json(dataset_name + '_qini', qini_dict)
+
+    # Draw plots and tables from data
+    print(var_sel_dict)
+    print(qini_dict)
+
+    plot_fig5(var_sel_dict)
+    plot_table6(qini_dict)
+    plot_fig7(qini_dict)
+    plot_fig8(qini_dict)
+    plot_fig9(qini_dict)
+
+
+def main2():
+    dataset_name = 'hillstrom'
+
+    # Load result from json file
+    var_sel_dict = load_json(dataset_name + '_val_sel')
+    qini_dict = load_json(dataset_name + '_qini')
+
+    # Draw plots and tables from data
+    print(var_sel_dict)
+    print(qini_dict)
+
+    # plot_fig5(var_sel_dict)
+    # plot_table6(qini_dict)
+    # plot_fig7(qini_dict)
+    # plot_fig8(qini_dict)
+    plot_fig9(qini_dict)
+
+
+if __name__ == '__main__':
+    main()
