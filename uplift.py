@@ -8,7 +8,7 @@ import argparse
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split, StratifiedKFold, KFold
 
-from config import models, search_space, urf_methods, wrapper_models
+from config import models, urf_methods, wrapper_models, get_search_space
 from preprocess import preprocess_data, assign_data
 from tune import parameter_tuning, wrapper
 from experiment import performance, qini
@@ -61,7 +61,7 @@ def main():
     parser.add_argument('-d', action='store_true', help='Only loading json files and display plots')
     args = parser.parse_args()
 
-    dataset_names = ['hillstrom']  # , 'lalonde', 'criteo']
+    dataset_names = ['lalonde']  # ['hillstrom', 'lalonde', 'criteo']
     if args.d:
         for dataset_name in dataset_names:
             print('*** Dataset name:', dataset_name)
@@ -82,7 +82,7 @@ def main():
 
         # Load data with preprocessing
         df = load_data(dataset_name)
-        df = preprocess_data(df)
+        df = preprocess_data(df, dataset=dataset_name)
         X, Y, T, ty = assign_data(df)
 
         # Cross-validation with K-fold
@@ -95,6 +95,7 @@ def main():
             qini_dict[model_name] = []
             qini_list = []
             enable_wrapper = model_name in wrapper_models
+            search_space = get_search_space(dataset_name, model_name)
 
             fit = models[model_name].fit
             predict = models[model_name].predict
