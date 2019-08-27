@@ -62,7 +62,6 @@ def predict(obj, newdata, y_name='y', t_name='treated', **kwargs):
     df_treat['treated'] = 1
     df_control['treated'] = 0
 
-    # print(obj.coef_, obj.intercept_)
     pred_treat = obj.predict_proba(df_treat)[:, 1]
     pred_control = obj.predict_proba(df_control)[:, 1]
 
