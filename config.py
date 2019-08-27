@@ -13,13 +13,21 @@ models = {
     #'urf_chisq': model_rf,
     #'urf_int': model_rf,
 }
+lalonde_models = {
+    'tma': model_tma,
+    'dta': model_dta,
+    'urf_ed': model_rf,
+    'urf_kl': model_rf,
+    'urf_chisq': model_rf,
+    'urf_int': model_rf,
+}
 search_space = {
     'method': [LogisticRegression],
     'solver': ['newton-cg', 'lbfgs', 'sag', 'saga'],
     'penalty': ['none', 'l2'],
     'tol': [1e-2, 1e-3, 1e-4],
     'C': [1e6, 1e3, 1, 1e-3, 1e-6],
-    'max_iter': [100],
+    'max_iter': [2],
 }
 search_space_for_linear = {
     'method': [LinearRegression],
@@ -47,8 +55,16 @@ urf_methods = {
 wrapper_models = ['tma', 'dta', 'trans']
 
 
+def get_models(dataset_name):
+    return {
+        'hillstrom': models,
+        'lalonde': lalonde_models,
+        'criteo': models,
+    }[dataset_name]
+
+
 def get_search_space(dataset_name, model_name):
-    if model_name in ['tma', 'trans', 'lai', 'glai']:
+    if model_name in ['tma', 'trans', 'dta', 'lai', 'glai']:
         if dataset_name == 'lalonde':
             return search_space_for_linear
         else:

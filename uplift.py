@@ -8,9 +8,9 @@ import argparse
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split, StratifiedKFold, KFold
 
-from config import models, urf_methods, wrapper_models, get_search_space
+from config import urf_methods, wrapper_models, get_models, get_search_space
 from preprocess import preprocess_data, assign_data
-from tune import parameter_tuning, wrapper
+from tune import parameter_tuning, wrapper, do_niv_variable_selection
 from experiment import performance, qini
 
 from plot import plot_fig5, plot_table6, plot_fig7, plot_fig8, plot_fig9
@@ -32,7 +32,8 @@ def load_data(dataset_name):
     elif dataset_name == 'lalonde':
         return pd.read_csv('Lalonde.csv')
     elif dataset_name == 'criteo':
-        return pd.read_csv('criteo_small.csv')
+        return pd.read_csv('test.csv')
+        #return pd.read_csv('criteo_small.csv')
     else:
         return None
 
@@ -61,7 +62,9 @@ def main():
     parser.add_argument('-d', action='store_true', help='Only loading json files and display plots')
     args = parser.parse_args()
 
-    dataset_names = ['lalonde']  # ['hillstrom', 'lalonde', 'criteo']
+    dataset_names = ['criteo']  # ['hillstrom', 'lalonde', 'criteo']
+
+    # Display only plots and tables with -d option
     if args.d:
         for dataset_name in dataset_names:
             print('*** Dataset name:', dataset_name)
@@ -88,6 +91,7 @@ def main():
         # Cross-validation with K-fold
         qini_dict = {}
         var_sel_dict = {}
+        models = get_models(dataset_name)
         for model_name in models:
             print('* Model:', model_name)
 
@@ -121,6 +125,18 @@ def main():
                 Y_test = Y.reindex(test_index)
                 T_train = T.reindex(train_index)
                 T_test = T.reindex(test_index)
+
+                if X_train.shape[1] > 50:
+                    niv_start_time = time.time()
+                    print('Start NIV variable selection')
+
+                    survived_vars = do_niv_variable_selection(X_train, Y_train, T_train)
+
+                    X_train = X_train[survived_vars]
+                    X_test = X_test[survived_vars]
+
+                    niv_end_time = time.time()
+                    print('NIV time:', niv_end_time - niv_start_time)
 
                 if enable_wrapper or enable_tune_parameters:
                     df = X_train.copy()
@@ -156,14 +172,15 @@ def main():
                         print('Start wrapper variable selection')
 
                         model_method = search_space.get('method', None)
-                        params = {
-                            'method': None if model_method is None else model_method[0],
-                            'tol': 1e-2,
-                            'max_iter': 100,
-                        }
+                        params = {'method': None if model_method is None else model_method[0]}
                         if params['method'] == LogisticRegression:
                             solver = search_space.get('solver', None)
                             params['solver'] = None if solver is None else solver[0]
+                            # tol(1e2-) and max_iter(10000) are for avoiding warning
+                            params.update({
+                                'tol': 1e-2,
+                                'max_iter': 2,
+                            })
 
                         _, drop_vars, qini_values = wrapper(fit, predict, data_dict, params=params)
                         best_qini = max(qini_values)
@@ -222,8 +239,8 @@ def main():
         print(var_sel_dict)
         print(qini_dict)
 
-        save_json('val_sel', var_sel_dict)
-        save_json('qini', qini_dict)
+        save_json(dataset_name + '_val_sel', var_sel_dict)
+        save_json(dataset_name + '_qini', qini_dict)
 
         display_results(qini_dict, var_sel_dict)
 
