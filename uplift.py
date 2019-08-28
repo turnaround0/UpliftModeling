@@ -172,6 +172,7 @@ def main():
             print(T.groupby(T).count())
             print('== Average of each group ==')
             avg = Y.groupby(T).sum() / T.groupby(T).count()
+            print(avg)
             print('Uplift:', avg[1] - avg[0])
         else:
             count = ty.groupby(ty).count()
