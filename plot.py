@@ -13,8 +13,16 @@ def plot_fig5(var_sel_dict):
         if not var_sel_dict[model_name]:
             continue
 
+        # Input is reverse order, because it is about number of drop variables
         s_avg_qini = pd.DataFrame(var_sel_dict[model_name]).mean()[::-1]
-        x_axis = range(len(s_avg_qini))
+
+        x_axis = np.arange(1, len(s_avg_qini) + 1)
+        x_ticks = np.arange(5, len(s_avg_qini) + 1, step=5)
+        y_min = s_avg_qini.min() if s_avg_qini.min() < 0 else 0
+        y_max = s_avg_qini.max() * 1.1
+
+        ax.set_xticks(x_ticks)
+        ax.set_ylim([y_min, y_max])
 
         ax.plot(x_axis, s_avg_qini, label=model_name)
 
@@ -29,9 +37,9 @@ def plot_table6(qini_dict):
     data = list()
     for model_name in qini_dict:
         qini_list = qini_dict[model_name]
-        qini_all_list = [q['qini'] for q in qini_list]
-        qini_30p_list = [q['qini_30p'] for q in qini_list]
-        qini_10p_list = [q['qini_10p'] for q in qini_list]
+        qini_all_list = np.array([q['qini'] for q in qini_list]) * 100
+        qini_30p_list = np.array([q['qini_30p'] for q in qini_list]) * 100
+        qini_10p_list = np.array([q['qini_10p'] for q in qini_list]) * 100
 
         row = ['{:.5f} ({:.5f})'.format(np.mean(qini_all_list), np.std(qini_all_list)),
                '{:.5f} ({:.5f})'.format(np.mean(qini_30p_list), np.std(qini_30p_list)),
@@ -52,13 +60,13 @@ def plot_fig7(qini_dict):
 
     # Draw random line
     qini_list = qini_dict[next(iter(qini_dict))]
-    s_random_inc_gains = pd.DataFrame(data=[q['random_inc_gains'] for q in qini_list]).mean()
+    s_random_inc_gains = pd.DataFrame(data=[q['random_inc_gains'] for q in qini_list]).mean() * 100
     ax.plot(x_axis, s_random_inc_gains, label='Random')
 
     # Draw line for each model
     for model_name in qini_dict:
         qini_list = qini_dict[model_name]
-        s_inc_gains = pd.DataFrame(data=[q['inc_gains'] for q in qini_list]).mean()
+        s_inc_gains = pd.DataFrame(data=[q['inc_gains'] for q in qini_list]).mean() * 100
         ax.plot(x_axis, s_inc_gains, label=model_name)
 
     ax.legend()
@@ -83,7 +91,7 @@ def plot_fig8(qini_dict):
     print('Worst model:', worst_model)
 
     # Draw plot for each fold about best and worst models
-    fig, axs = plt.subplots(1, 2)
+    fig, axs = plt.subplots(1, 2, figsize=(6.4 * 2, 4.8))
 
     for plot_idx, model_name in enumerate([best_model, worst_model]):
         ax = axs[plot_idx]
@@ -93,11 +101,11 @@ def plot_fig8(qini_dict):
 
         qini_list = qini_dict[model_name]
         x_axis = range(0, 110, 10)
-        ax.plot(x_axis, qini_list[0]['random_inc_gains'], label='Random')
+        ax.plot(x_axis, np.array(qini_list[0]['random_inc_gains']) * 100, label='Random')
 
         for idx in range(len(qini_list)):
             qini_data = qini_list[idx]
-            ax.plot(x_axis, qini_data['inc_gains'], label='Fold {}'.format(idx + 1))
+            ax.plot(x_axis, np.array(qini_data['inc_gains']) * 100, label='Fold {}'.format(idx + 1))
 
         ax.legend()
 
@@ -105,7 +113,7 @@ def plot_fig8(qini_dict):
 
 
 def plot_fig9(qini_dict):
-    fig, axs = plt.subplots(1, 2)
+    fig, axs = plt.subplots(1, 2, figsize=(6.4 * 2, 4.8))
 
     for idx, n_fold in enumerate([0, 2]):
         ax = axs[idx]
@@ -115,11 +123,11 @@ def plot_fig9(qini_dict):
 
         x_axis = range(0, 110, 10)
         qini_data = qini_dict[next(iter(qini_dict))][n_fold]
-        ax.plot(x_axis, qini_data['random_inc_gains'], label='Random')
+        ax.plot(x_axis, np.array(qini_data['random_inc_gains']) * 100, label='Random')
 
         for model_name in qini_dict:
             qini_data = qini_dict[model_name][n_fold]
-            ax.plot(x_axis, qini_data['inc_gains'], label=model_name)
+            ax.plot(x_axis, np.array(qini_data['inc_gains']) * 100, label=model_name)
 
         ax.legend()
 
