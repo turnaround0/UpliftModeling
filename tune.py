@@ -50,7 +50,7 @@ def parameter_tuning(fit_mdl, pred_mdl, data, search_space, plotit=False):
 
         mdl = fit_mdl(x_train, y_train, t_train, **params)
         pred = pred_mdl(mdl, newdata=x_test, y=y_test, t=t_test)
-        # print('    {}'.format(params))
+
         try:
             perf = performance(pred['pr_y1_t1'], pred['pr_y1_t0'], y_test, t_test)
         except Exception as e:
@@ -138,7 +138,7 @@ def wrapper(fit_mdl, pred_mdl, data, params=None,
                        qini_values=qini_values)
 
 
-def do_niv_variable_selection(x, y, t):
+def do_niv_variable_selection(x, y, t, max_vars):
     """
     NIV variable selection procedure
 
@@ -146,6 +146,7 @@ def do_niv_variable_selection(x, y, t):
         x: predictor variables of training dataset,
         y: target variables of training dataset,
         t: treatment variables of training dataset,
+        max_vars: maximum number of return variables,
     Return:
         (The list of survived variables)
     """
@@ -160,19 +161,24 @@ def do_niv_variable_selection(x, y, t):
     sum_y0_c = sum(y0_c)
 
     niv_dict = {}
-    idx = 0
     for col in x.columns:
         df = pd.concat([x[col].rename(col), y1_t.rename('y1_t'), y0_t.rename('y0_t'),
                         y1_c.rename('y1_c'), y0_c.rename('y0_c')], axis=1)
         x_group = df.groupby(x[col])
         x_sum = x_group.sum()
 
-        woe_t = np.log((x_sum['y1_t'] * sum_y0_t) / (x_sum['y0_t'] * sum_y1_t))
-        woe_c = np.log((x_sum['y1_c'] * sum_y0_c) / (x_sum['y0_c'] * sum_y1_c))
-        woe_t[x_sum['y1_t'] == 0] = 0
-        woe_t[x_sum['y0_t'] == 0] = 0
-        woe_c[x_sum['y1_c'] == 0] = 0
-        woe_c[x_sum['y0_c'] == 0] = 0
+        if sum_y0_t == 0 or sum_y1_t == 0:
+            woe_t = 0
+        else:
+            woe_t = x_sum.apply(lambda r: np.log((r['y1_t'] * sum_y0_t) / (r['y0_t'] * sum_y1_t))
+                                if r['y1_t'] > 0 and r['y0_t'] > 0 else 0, axis=1)
+
+        if sum_y0_c == 0 or sum_y1_c == 0:
+            woe_c = 0
+        else:
+            woe_c = x_sum.apply(lambda r: np.log((r['y1_c'] * sum_y0_c) / (r['y0_c'] * sum_y1_c))
+                                if r['y1_c'] > 0 and r['y0_c'] > 0 else 0, axis=1)
+
         nwoe = woe_t - woe_c
 
         p_x_y1_t = x_sum['y1_t'] / sum_y1_t if sum_y1_t > 0 else 0
@@ -184,11 +190,8 @@ def do_niv_variable_selection(x, y, t):
         niv_row = 100 * nwoe * niv_weight
         niv = niv_row.sum()
         niv_dict[col] = niv
-        idx += 1
-        if idx > 200:
-            break
 
     s_niv = pd.Series(niv_dict)
-    s_selected_niv = s_niv.sort_values(ascending=False)[: 12]
+    s_selected_niv = s_niv.sort_values(ascending=False)[: max_vars]
 
     return s_selected_niv.index
