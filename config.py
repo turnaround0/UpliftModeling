@@ -36,7 +36,7 @@ search_space_for_tree = {
     # 'mtry': [3, ],  default = sqrt(#col)
     'bagging_fraction': [0.6, ],
     'max_depth': [10, 5, ],
-    'min_split': [2000, 500, 100],
+    'min_split': [2000, 1000, 500],
     # 'min_bucket_t0': [100, ],  default = min_split / 4
     # 'min_bucket_t1': [100, ],  default = min_split / 4
 }
