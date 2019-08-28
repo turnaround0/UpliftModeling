@@ -35,6 +35,8 @@ def preprocess_data(df, dataset='hillstrom', verbose=True):
         df = df.fillna(0)
         y_name = 'y'
         t_name = 'treatment'
+        # T(0.0, 1.0) type is float, but it should be int for tree.
+        df[t_name] = df[t_name].astype('int')
     elif dataset == 'lalonde':
         y_name = 'RE78'
         t_name = 'treatment'
