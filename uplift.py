@@ -133,7 +133,7 @@ def main():
     parser.add_argument('-d', action='store_true', help='Only loading json files and display plots')
     args = parser.parse_args()
 
-    dataset_names = ['lalonde']  # ['hillstrom', 'lalonde', 'criteo']
+    dataset_names = ['hillstrom', 'lalonde', 'criteo']
 
     # Display only plots and tables with -d option
     if args.d:
@@ -150,6 +150,7 @@ def main():
     p_test = 0.33
     n_niv_params = 50
     enable_tune_parameters = True
+    repeat_num = 0  # For small dataset with regression
 
     for dataset_name in dataset_names:
         print('*** Dataset name:', dataset_name)
@@ -158,6 +159,8 @@ def main():
         # Load data with preprocessing
         df = load_data(dataset_name)
         df = preprocess_data(df, dataset=dataset_name)
+        if repeat_num:
+            df = pd.concat([df] * repeat_num, axis=0).reset_index(drop=True)
         X, Y, T, ty = assign_data(df)
 
         print('Shape:', df.shape)
@@ -278,7 +281,7 @@ def main():
         save_json(dataset_name + '_val_sel', var_sel_dict)
         save_json(dataset_name + '_qini', qini_dict)
 
-        display_results(dataset_name, qini_dict, var_sel_dict)
+        # display_results(dataset_name, qini_dict, var_sel_dict)
 
 
 if __name__ == '__main__':
