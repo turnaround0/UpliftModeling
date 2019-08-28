@@ -17,11 +17,11 @@ def plot_fig5(var_sel_dict):
         s_avg_qini = pd.DataFrame(var_sel_dict[model_name]).mean()[::-1]
 
         x_axis = np.arange(1, len(s_avg_qini) + 1)
-        x_ticks = np.arange(5, len(s_avg_qini) + 1, step=5)
+        # x_ticks = np.arange(5, len(s_avg_qini) + 1, step=5)
         y_min = s_avg_qini.min() if s_avg_qini.min() < 0 else 0
         y_max = s_avg_qini.max() * 1.1
 
-        ax.set_xticks(x_ticks)
+        # ax.set_xticks(x_ticks)
         ax.set_ylim([y_min, y_max])
 
         ax.plot(x_axis, s_avg_qini, label=model_name)
