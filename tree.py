@@ -20,7 +20,7 @@ class Node(object):
 
 
 def info_gain(df, attribute, predict_attr, treatment_attr,
-              method, min_bucket_t0, min_bucket_t1):
+              method, min_bucket_t0, min_bucket_t1, is_logistic=True):
     """
     Select the information gain and threshold of the attribute to split
     The threshold chosen splits the test data such that information gain is maximized
@@ -40,10 +40,16 @@ def info_gain(df, attribute, predict_attr, treatment_attr,
     tmp['n_t0_L'] = (tmp['T'] == 0).cumsum()
     tmp['n_t1_R'] = sum(tmp['T']) - (tmp['T']).cumsum()
     tmp['n_t0_R'] = sum(tmp['T'] == 0) - (tmp['T'] == 0).cumsum()
-    tmp['n_y_t1_L'] = (tmp['T'] & tmp['Y']).cumsum()
-    tmp['n_y_t0_L'] = ((tmp['T'] == 0) & tmp['Y']).cumsum()
-    tmp['n_y_t1_R'] = sum(tmp['T'] & tmp['Y']) - (tmp['T'] & tmp['Y']).cumsum()
-    tmp['n_y_t0_R'] = sum((tmp['T'] == 0) & tmp['Y']) - ((tmp['T'] == 0) & tmp['Y']).cumsum()
+    if is_logistic:
+        tmp['n_y_t1_L'] = (tmp['T'] & tmp['Y']).cumsum()
+        tmp['n_y_t0_L'] = ((tmp['T'] == 0) & tmp['Y']).cumsum()
+        tmp['n_y_t1_R'] = sum(tmp['T'] & tmp['Y']) - (tmp['T'] & tmp['Y']).cumsum()
+        tmp['n_y_t0_R'] = sum((tmp['T'] == 0) & tmp['Y']) - ((tmp['T'] == 0) & tmp['Y']).cumsum()
+    else:
+        tmp['n_y_t1_L'] = tmp[tmp['T'] == 1]['Y'].cumsum()
+        tmp['n_y_t0_L'] = tmp[tmp['T'] == 0]['Y'].cumsum()
+        tmp['n_y_t1_R'] = tmp['n_y_t1_L'].values[-1] - tmp[tmp['T'] == 1]['Y'].cumsum()
+        tmp['n_y_t0_R'] = tmp['n_y_t0_L'].values[-1] - tmp[tmp['T'] == 0]['Y'].cumsum()
 
     # min bucket condition
     #   Check the size of treatment & control group in left & right child
@@ -54,14 +60,26 @@ def info_gain(df, attribute, predict_attr, treatment_attr,
 
     if sum(tmp['min_bucket_ok']) > 0:
         num_total = df.shape[0]
-        tr, tn, cr, cn = num_class(df, predict_attr, treatment_attr)
-        n_t1 = tr + tn
-        n_t0 = cr + cn
-        pr_t1 = (tr + tn) / num_total
-        # r_t0 = (tr + cr) / num_total
-        pr_t0 = 1 - pr_t1
-        pr_y1_t1 = tr / (tr + tn)
-        pr_y1_t0 = cr / (cr + cn)
+        if is_logistic:
+            tr, tn, cr, cn = num_class(df, predict_attr, treatment_attr)
+            n_t1 = tr + tn
+            n_t0 = cr + cn
+            pr_t1 = (tr + tn) / num_total
+            pr_t0 = 1 - pr_t1
+            pr_y1_t1 = tr / (tr + tn)
+            pr_y1_t0 = cr / (cr + cn)
+        else:
+            n_t1 = tmp['T'].sum()
+            n_t0 = num_total - n_t1
+            pr_t1 = n_t1 / num_total
+            pr_t0 = 1 - pr_t1
+            # 0 <= pr_y1_t1, pr_y1_t0 <= 1
+            max_y = tmp['Y'].max()
+            s_y_t = tmp[tmp['T'] == 1]['Y']
+            s_y_c = tmp[tmp['T'] == 0]['Y']
+            pr_y1_t1 = s_y_t.mean() / max_y
+            pr_y1_t0 = s_y_c.mean() / max_y
+            print(pr_y1_t1, pr_y1_t0)
 
         # Randomized assignment implies pr_l_t1 = pr_l_t0 for all possible splits
         pr_l_t1 = (tmp['n_t1_L']) / n_t1
@@ -168,7 +186,7 @@ def num_class(df, predict_attr, treatment_attr):
 
 
 def choose_attr(df, attributes, predict_attr, treatment_attr,
-                method, min_bucket_t0, min_bucket_t1):
+                method, min_bucket_t0, min_bucket_t1, is_logistic=True):
     """
     Chooses the attribute and its threshold with the highest info gain
     from the set of attributes
@@ -179,7 +197,7 @@ def choose_attr(df, attributes, predict_attr, treatment_attr,
     # Test each attribute (note attributes maybe be chosen more than once)
     for attr in attributes:
         df_ig = info_gain(df, attr, predict_attr, treatment_attr,
-                          method, min_bucket_t0, min_bucket_t1)
+                          method, min_bucket_t0, min_bucket_t1, is_logistic)
         if df_ig is None:
             continue
 
@@ -201,7 +219,7 @@ def choose_attr(df, attributes, predict_attr, treatment_attr,
 def build_tree(df, cols, predict_attr='Y', treatment_attr='T',
                method='ED', depth=1, max_depth=float('INF'),
                min_split=2000, min_bucket_t0=None, min_bucket_t1=None,
-               mtry=None, random_seed=1234):
+               mtry=None, random_seed=1234, is_logistic=True):
     """
     Builds the Decision Tree based on training data, attributes to train on,
     and a prediction attribute
@@ -217,9 +235,19 @@ def build_tree(df, cols, predict_attr='Y', treatment_attr='T',
         min_bucket_t1 = round(min_split / 4)
 
     # Get the number of positive and negative examples in the training data
-    tr, tn, cr, cn = num_class(df, predict_attr, treatment_attr)
-    r_y1_ct1 = tr / (tr + tn)
-    r_y1_ct0 = cr / (cr + cn)
+    if is_logistic:
+        tr, tn, cr, cn = num_class(df, predict_attr, treatment_attr)
+        r_y1_ct1 = tr / (tr + tn)
+        r_y1_ct0 = cr / (cr + cn)
+        n_t = tr + tn
+        n_c = cr + cn
+    else:
+        s_y_t = df[df[treatment_attr] == 1][predict_attr]
+        s_y_c = df[df[treatment_attr] == 0][predict_attr]
+        r_y1_ct1 = s_y_t.mean()
+        r_y1_ct0 = s_y_c.mean()
+        n_t = s_y_t.count()
+        n_c = s_y_c.count()
 
     # Check variables have less than 2 levels at the current node
     # If not, exclude them as candidates for mtry selection
@@ -236,9 +264,13 @@ def build_tree(df, cols, predict_attr='Y', treatment_attr='T',
     #     node should be larger than 'min_bucket_t0'/'min_bucket_t1'
     #   4. Expected return should be larger than 0 and smaller than 1
     #     (for KL-divergence & Chisq splitting criteria)
-    split_cond = tr + tn > min_split and cr + cn > min_split \
-                 and 0 < r_y1_ct1 < 1 and 0 < r_y1_ct0 < 1 \
-                 and depth < max_depth and sum(ok_vars) >= mtry
+    if is_logistic:
+        split_cond = n_t > min_split and n_c > min_split \
+                     and 0 < r_y1_ct1 < 1 and 0 < r_y1_ct0 < 1 \
+                     and depth < max_depth and sum(ok_vars) >= mtry
+    else:
+        split_cond = n_t > min_split and n_c > min_split \
+                     and depth < max_depth and sum(ok_vars) >= mtry
 
     best_attr, threshold = None, None
     if split_cond:
@@ -248,12 +280,12 @@ def build_tree(df, cols, predict_attr='Y', treatment_attr='T',
         # Determine attribute and its threshold value with the highest
         # information gain
         best_attr, threshold = choose_attr(df, ok_cols, predict_attr, treatment_attr,
-                                           method, min_bucket_t0, min_bucket_t1)
+                                           method, min_bucket_t0, min_bucket_t1, is_logistic)
     if best_attr is None:
         # Create a leaf node indicating it's prediction
         leaf = Node(None, None)
         leaf.leaf = True
-        leaf.predict = (tr / (tr + tn), cr / (cr + cn))
+        leaf.predict = (r_y1_ct1, r_y1_ct0)
         return leaf
     else:
         # Create internal tree node based on attribute and it's threshold
@@ -266,11 +298,11 @@ def build_tree(df, cols, predict_attr='Y', treatment_attr='T',
         tree.left = build_tree(sub_1, cols, predict_attr, treatment_attr,
                                method=method, depth=depth + 1, max_depth=max_depth,
                                min_split=min_split, min_bucket_t0=min_bucket_t0,
-                               min_bucket_t1=min_bucket_t1, mtry=mtry)
+                               min_bucket_t1=min_bucket_t1, mtry=mtry, is_logistic=is_logistic)
         tree.right = build_tree(sub_2, cols, predict_attr, treatment_attr,
                                 method=method, depth=depth + 1, max_depth=max_depth,
                                 min_split=min_split, min_bucket_t0=min_bucket_t0,
-                                min_bucket_t1=min_bucket_t1, mtry=mtry)
+                                min_bucket_t1=min_bucket_t1, mtry=mtry, is_logistic=is_logistic)
         return tree
 
 

@@ -32,13 +32,26 @@ search_space_for_linear = {
     'method': [LinearRegression],
 }
 search_space_for_tree = {
-    'ntree': [20, ],
-    'mtry': [3, 5, 7, ],  # default = sqrt(#col)
+    'ntree': [10, ],
+    # 'mtry': [3, ],  default = sqrt(#col)
     'bagging_fraction': [0.6, ],
     'max_depth': [10, 5, ],
-    'min_split': [2000, 1000, 500, ],
-    'min_bucket_t0': [100, 300, 500, ],  # default = min_split / 4
-    'min_bucket_t1': [100, 300, 500, ],  # default = min_split / 4
+    'min_split': [2000, 500, 100],
+    # 'min_bucket_t0': [100, ],  default = min_split / 4
+    # 'min_bucket_t1': [100, ],  default = min_split / 4
+}
+search_space_for_tree_criteo = {
+    'ntree': [10, ],
+    'bagging_fraction': [0.6, ],
+    'max_depth': [10, ],
+    'min_split': [50, 20, 5],
+}
+search_space_for_tree_lalonde = {
+    'ntree': [10, ],
+    'bagging_fraction': [0.6, ],
+    'max_depth': [10, ],
+    'min_split': [15, 10, 5, ],
+    'is_logistic': [False],
 }
 search_space_for_dta = {
     'method': [LogisticRegression],
@@ -70,6 +83,11 @@ def get_search_space(dataset_name, model_name):
     elif model_name == 'dta':
         return search_space_for_dta
     elif model_name.startswith('urf'):
-        return search_space_for_tree
+        if dataset_name == 'lalonde':
+            return search_space_for_tree_lalonde
+        elif dataset_name == 'criteo':
+            return search_space_for_tree_criteo
+        else:
+            return search_space_for_tree
     else:
         return {}

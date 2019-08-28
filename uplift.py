@@ -50,11 +50,11 @@ def load_json(name):
 
 def display_results(dataset_name, qini_dict, var_sel_dict):
     if dataset_name != 'criteo':
-        plot_fig5(var_sel_dict)
-    plot_table6(qini_dict)
-    plot_fig7(qini_dict)
-    plot_fig8(qini_dict)
-    plot_fig9(qini_dict)
+        plot_fig5(dataset_name, var_sel_dict)
+    plot_table6(dataset_name, qini_dict)
+    plot_fig7(dataset_name, qini_dict)
+    plot_fig8(dataset_name, qini_dict)
+    plot_fig9(dataset_name, qini_dict)
 
 
 def get_tuning_data_dict(X_train, Y_train, T_train, dataset_name, p_test, seed):
