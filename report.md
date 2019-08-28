@@ -1,6 +1,26 @@
 # Uplift implementation report
 Deadline: 2019/08/29
 
+Dataset
+*** Dataset name: hillstrom
+CN    19044
+CR     2262
+TN    18149
+TR     3238
+3238 / 18149 - 2262 / 19044 = 0.0596
+
+criteo: imbalanced dataset
+CN    539
+CR     78
+TN    682
+TR     92
+92 / 682 - 78 / 539 = -0.0098
+
+*** Dataset name: lalonde
+T
+0.0    5090.048302
+1.0    5976.352033
+
 ## 1. Figure 5. Results of the wrapper variable selection procedure (general wrapper approach)
 Figure 5 is skipped for criteo dataset.
 
