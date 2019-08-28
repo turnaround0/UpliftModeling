@@ -50,7 +50,7 @@ search_space_for_tree_lalonde = {
     'ntree': [10, ],
     'bagging_fraction': [0.6, ],
     'max_depth': [10, ],
-    'min_split': [15, 10, 5, ],
+    'min_split': [20, 10, 5, ],
     'is_logistic': [False],
 }
 search_space_for_dta = {
