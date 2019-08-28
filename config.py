@@ -53,10 +53,6 @@ search_space_for_tree_lalonde = {
     'min_split': [20, 10, 5, ],
     'is_logistic': [False],
 }
-search_space_for_dta = {
-    'method': [LogisticRegression],
-    'solver': ['liblinear', ],
-}
 urf_methods = {
     'urf_ed': 'ed',
     'urf_kl': 'kl',
@@ -80,8 +76,6 @@ def get_search_space(dataset_name, model_name):
             return search_space_for_linear
         else:
             return search_space
-    elif model_name == 'dta':
-        return search_space_for_dta
     elif model_name.startswith('urf'):
         if dataset_name == 'lalonde':
             return search_space_for_tree_lalonde
