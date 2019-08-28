@@ -79,7 +79,6 @@ def info_gain(df, attribute, predict_attr, treatment_attr,
             s_y_c = tmp[tmp['T'] == 0]['Y']
             pr_y1_t1 = s_y_t.mean() / max_y
             pr_y1_t0 = s_y_c.mean() / max_y
-            print(pr_y1_t1, pr_y1_t0)
 
         # Randomized assignment implies pr_l_t1 = pr_l_t0 for all possible splits
         pr_l_t1 = (tmp['n_t1_L']) / n_t1
@@ -291,8 +290,6 @@ def build_tree(df, cols, predict_attr='Y', treatment_attr='T',
         # Create internal tree node based on attribute and it's threshold
         sub_1 = df[df[best_attr] <= threshold]
         sub_2 = df[df[best_attr] > threshold]
-        sub1_tr, sub1_tn, sub1_cr, sub1_cn = num_class(sub_1, predict_attr, treatment_attr)
-        sub2_tr, sub2_tn, sub2_cr, sub2_cn = num_class(sub_2, predict_attr, treatment_attr)
         tree = Node(best_attr, threshold)
         # Recursively build left and right subtree
         tree.left = build_tree(sub_1, cols, predict_attr, treatment_attr,
