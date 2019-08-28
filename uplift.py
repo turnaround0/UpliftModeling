@@ -62,7 +62,7 @@ def get_tuning_data_dict(X_train, Y_train, T_train, dataset_name, p_test, seed):
     df['Y'] = Y_train
     df['T'] = T_train
 
-    if dataset_name == 'hillstrom':
+    if dataset_name in ['hillstrom', 'criteo']:
         stratify = df[['Y', 'T']]
     else:
         stratify = T_train
@@ -133,7 +133,7 @@ def main():
     parser.add_argument('-d', action='store_true', help='Only loading json files and display plots')
     args = parser.parse_args()
 
-    dataset_names = ['criteo']  # ['hillstrom', 'lalonde', 'criteo']
+    dataset_names = ['hillstrom']  # ['hillstrom', 'lalonde', 'criteo']
 
     # Display only plots and tables with -d option
     if args.d:
@@ -160,6 +160,11 @@ def main():
         df = preprocess_data(df, dataset=dataset_name)
         X, Y, T, ty = assign_data(df)
 
+        if dataset_name == 'lalonde':
+            print(Y.groupby(T).sum() / T.groupby(T).count())
+        else:
+            print(ty.groupby(ty).count())
+
         # Cross-validation with K-fold
         qini_dict = {}
         var_sel_dict = {}
@@ -182,7 +187,7 @@ def main():
             elif dataset_name == 'lalonde':
                 fold_gen = KFold(n_splits=n_fold, shuffle=True, random_state=seed).split(X)
             elif dataset_name == 'criteo':
-                fold_gen = KFold(n_splits=n_fold, shuffle=True, random_state=seed).split(X)
+                fold_gen = StratifiedKFold(n_splits=n_fold, shuffle=True, random_state=seed).split(X, ty)
             else:
                 print('Invalid dataset name!')
                 assert ()
