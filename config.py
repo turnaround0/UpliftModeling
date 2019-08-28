@@ -4,14 +4,14 @@ from models import model_tma, model_dta, model_lai, model_glai, model_rvtu, mode
 
 models = {
     'tma': model_tma,
-    #'dta': model_dta,
-    #'lai': model_lai,
-    #'glai': model_glai,
-    #'trans': model_rvtu,
-    #'urf_ed': model_rf,
-    #'urf_kl': model_rf,
-    #'urf_chisq': model_rf,
-    #'urf_int': model_rf,
+    'dta': model_dta,
+    'lai': model_lai,
+    'glai': model_glai,
+    'trans': model_rvtu,
+    'urf_ed': model_rf,
+    'urf_kl': model_rf,
+    'urf_chisq': model_rf,
+    'urf_int': model_rf,
 }
 lalonde_models = {
     'tma': model_tma,
