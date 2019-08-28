@@ -32,8 +32,8 @@ def load_data(dataset_name):
     elif dataset_name == 'lalonde':
         return pd.read_csv('Lalonde.csv')
     elif dataset_name == 'criteo':
-        return pd.read_csv('test.csv')
-        #return pd.read_csv('criteo_small.csv')
+        #return pd.read_csv('test.csv')
+        return pd.read_csv('criteo_small_fix.csv')
     else:
         return None
 
@@ -57,6 +57,77 @@ def display_results(qini_dict, var_sel_dict):
     plot_fig9(qini_dict)
 
 
+def get_tuning_data_dict(X_train, Y_train, T_train, dataset_name, p_test, seed):
+    df = X_train.copy()
+    df['Y'] = Y_train
+    df['T'] = T_train
+
+    if dataset_name == 'hillstrom':
+        stratify = df[['Y', 'T']]
+    else:
+        stratify = T_train
+    tuning_df, validate_df = train_test_split(
+        df, test_size=p_test, random_state=seed, stratify=stratify)
+
+    X_tuning = tuning_df.drop(['Y', 'T'], axis=1)
+    Y_tuning = tuning_df['Y']
+    T_tuning = tuning_df['T']
+
+    X_validate = validate_df.drop(['Y', 'T'], axis=1)
+    Y_validate = validate_df['Y']
+    T_validate = validate_df['T']
+
+    return {
+        "x_train": X_tuning,
+        "y_train": Y_tuning,
+        "t_train": T_tuning,
+        "x_test": X_validate,
+        "y_test": Y_validate,
+        "t_test": T_validate,
+    }
+
+
+def do_general_wrapper_approach(model, data_dict, search_space):
+    wrapper_start_time = time.time()
+    print('Start wrapper variable selection')
+
+    model_method = search_space.get('method', None)
+    params = {'method': None if model_method is None else model_method[0]}
+    if params['method'] == LogisticRegression:
+        solver = search_space.get('solver', None)
+        params['solver'] = None if solver is None else solver[0]
+
+    _, drop_vars, qini_values = wrapper(model.fit, model.predict, data_dict, params=params)
+    best_qini = max(qini_values)
+    best_idx = qini_values.index(best_qini)
+    best_drop_vars = drop_vars[:best_idx]
+
+    wrapper_end_time = time.time()
+    print('Wrapper time:', wrapper_end_time - wrapper_start_time)
+
+    return best_drop_vars, qini_values
+
+
+def do_tuning_parameters(model, data_dict, search_space):
+    keys = search_space.keys()
+    n_space = np.prod([len(search_space[key]) for key in keys])
+
+    # If number of space is 1, we don't need to perform tuning parameters
+    if n_space > 1:
+        tune_start_time = time.time()
+        print('Start parameter tuning')
+
+        _, best_params = parameter_tuning(model.fit, model.predict, data_dict,
+                                          search_space=search_space)
+
+        tune_end_time = time.time()
+        print('Tune time:', tune_end_time - tune_start_time)
+    else:
+        best_params = {key: search_space[key][0] for key in keys}
+
+    return best_params
+
+
 def main():
     parser = argparse.ArgumentParser(description='***** Uplift modeling *****')
     parser.add_argument('-d', action='store_true', help='Only loading json files and display plots')
@@ -75,8 +146,9 @@ def main():
 
     # Parameters
     seed = 1234
-    n_fold = 3
+    n_fold = 5
     p_test = 0.33
+    n_niv_params = 50
     enable_tune_parameters = True
 
     for dataset_name in dataset_names:
@@ -126,11 +198,12 @@ def main():
                 T_train = T.reindex(train_index)
                 T_test = T.reindex(test_index)
 
-                if X_train.shape[1] > 50:
+                if X_train.shape[1] > n_niv_params:
                     niv_start_time = time.time()
                     print('Start NIV variable selection')
 
-                    survived_vars = do_niv_variable_selection(X_train, Y_train, T_train)
+                    survived_vars = do_niv_variable_selection(X_train, Y_train, T_train, n_niv_params)
+                    print('NIV:', list(survived_vars))
 
                     X_train = X_train[survived_vars]
                     X_test = X_test[survived_vars]
@@ -139,90 +212,40 @@ def main():
                     print('NIV time:', niv_end_time - niv_start_time)
 
                 if enable_wrapper or enable_tune_parameters:
-                    df = X_train.copy()
-                    df['Y'] = Y_train
-                    df['T'] = T_train
-
-                    if dataset_name == 'hillstrom':
-                        stratify = df[['Y', 'T']]
-                    else:
-                        stratify = T_train
-                    tuning_df, validate_df = train_test_split(
-                        df, test_size=p_test, random_state=seed, stratify=stratify)
-
-                    X_tuning = tuning_df.drop(['Y', 'T'], axis=1)
-                    Y_tuning = tuning_df['Y']
-                    T_tuning = tuning_df['T']
-
-                    X_validate = validate_df.drop(['Y', 'T'], axis=1)
-                    Y_validate = validate_df['Y']
-                    T_validate = validate_df['T']
-
-                    data_dict = {
-                        "x_train": X_tuning,
-                        "y_train": Y_tuning,
-                        "t_train": T_tuning,
-                        "x_test": X_validate,
-                        "y_test": Y_validate,
-                        "t_test": T_validate,
-                    }
+                    data_dict = get_tuning_data_dict(X_train, Y_train, T_train, dataset_name, p_test, seed)
 
                     if enable_wrapper:
-                        wrapper_start_time = time.time()
-                        print('Start wrapper variable selection')
-
-                        model_method = search_space.get('method', None)
-                        params = {'method': None if model_method is None else model_method[0]}
-                        if params['method'] == LogisticRegression:
-                            solver = search_space.get('solver', None)
-                            params['solver'] = None if solver is None else solver[0]
-                            # tol(1e2-) and max_iter(10000) are for avoiding warning
-                            params.update({
-                                'tol': 1e-2,
-                                'max_iter': 2,
-                            })
-
-                        _, drop_vars, qini_values = wrapper(fit, predict, data_dict, params=params)
-                        best_qini = max(qini_values)
-                        best_idx = qini_values.index(best_qini)
-                        best_drop_vars = drop_vars[:best_idx]
-
+                        best_drop_vars, qini_values = do_general_wrapper_approach(models[model_name],
+                                                                                  data_dict, search_space)
+                        print('Drop vars:', best_drop_vars)
                         var_sel_dict[model_name].append(qini_values)
 
-                        X_tuning.drop(best_drop_vars, axis=1, inplace=True)
-                        X_validate.drop(best_drop_vars, axis=1, inplace=True)
+                        data_dict['x_train'].drop(best_drop_vars, axis=1, inplace=True)
+                        data_dict['x_test'].drop(best_drop_vars, axis=1, inplace=True)
                         X_train.drop(best_drop_vars, axis=1, inplace=True)
                         X_test.drop(best_drop_vars, axis=1, inplace=True)
 
-                        wrapper_end_time = time.time()
-                        print('Wrapper time:', wrapper_end_time - wrapper_start_time)
-
                     if enable_tune_parameters:
-                        tune_start_time = time.time()
-                        print('Start parameter tuning')
-
-                        _, best_params = parameter_tuning(fit, predict, data_dict,
-                                                          search_space=search_space)
-
-                        tune_end_time = time.time()
-                        print('Tune time:', tune_end_time - tune_start_time)
+                        best_params = do_tuning_parameters(models[model_name], data_dict, search_space)
+                        print('Best params:', best_params)
                     else:
                         best_params = {}
                 else:
                     best_params = {}
 
+                # In case of Uplift Random Forest tree,
+                # split criterion (ed, kl or others) should be set.
                 best_params.update(insert_urf_method(model_name))
 
                 # Train model and predict outcomes
-                args = {'T': T_test}
-
                 mdl = fit(X_train, Y_train, T_train, **best_params)
-                pred = predict(mdl, X_test, t=T_test, **args)
+                pred = predict(mdl, X_test, t=T_test)
 
                 # Perform to check performance with Qini curve
                 perf = performance(pred['pr_y1_t1'], pred['pr_y1_t0'], Y_test, T_test)
                 q = qini(perf, plotit=False)
 
+                # Store Qini values
                 print('Qini =', q['qini'])
                 qini_dict[model_name].append(q)
                 qini_list.append(q['qini'])
@@ -235,9 +258,6 @@ def main():
 
         end_time = time.time()
         print('Total time:', end_time - start_time)
-
-        print(var_sel_dict)
-        print(qini_dict)
 
         save_json(dataset_name + '_val_sel', var_sel_dict)
         save_json(dataset_name + '_qini', qini_dict)
