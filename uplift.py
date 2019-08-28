@@ -161,8 +161,14 @@ def main():
         X, Y, T, ty = assign_data(df)
 
         if dataset_name == 'lalonde':
+            print('== Sum of each group ==')
+            print(Y.groupby(T).sum())
+            print('== Count of each group ==')
+            print(T.groupby(T).count())
+            print('== Average of each group ==')
             print(Y.groupby(T).sum() / T.groupby(T).count())
         else:
+            print('== Count of each group ==')
             print(ty.groupby(ty).count())
 
         # Cross-validation with K-fold
