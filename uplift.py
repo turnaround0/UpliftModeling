@@ -32,7 +32,6 @@ def load_data(dataset_name):
     elif dataset_name == 'lalonde':
         return pd.read_csv('Lalonde.csv')
     elif dataset_name == 'criteo':
-        #return pd.read_csv('test.csv')
         return pd.read_csv('criteo_small_fix.csv')
     else:
         return None
@@ -49,8 +48,9 @@ def load_json(name):
         return json.load(f)
 
 
-def display_results(qini_dict, var_sel_dict):
-    plot_fig5(var_sel_dict)
+def display_results(dataset_name, qini_dict, var_sel_dict):
+    if dataset_name != 'criteo':
+        plot_fig5(var_sel_dict)
     plot_table6(qini_dict)
     plot_fig7(qini_dict)
     plot_fig8(qini_dict)
@@ -141,7 +141,7 @@ def main():
             print('*** Dataset name:', dataset_name)
             qini_dict = load_json(dataset_name + '_qini')
             var_sel_dict = load_json(dataset_name + '_val_sel')
-            display_results(qini_dict, var_sel_dict)
+            display_results(dataset_name, qini_dict, var_sel_dict)
         exit()
 
     # Parameters
@@ -198,6 +198,7 @@ def main():
                 T_train = T.reindex(train_index)
                 T_test = T.reindex(test_index)
 
+                niv_done = False
                 if X_train.shape[1] > n_niv_params:
                     niv_start_time = time.time()
                     print('Start NIV variable selection')
@@ -207,29 +208,27 @@ def main():
 
                     X_train = X_train[survived_vars]
                     X_test = X_test[survived_vars]
+                    niv_done = True
 
                     niv_end_time = time.time()
                     print('NIV time:', niv_end_time - niv_start_time)
 
-                if enable_wrapper or enable_tune_parameters:
-                    data_dict = get_tuning_data_dict(X_train, Y_train, T_train, dataset_name, p_test, seed)
+                data_dict = get_tuning_data_dict(X_train, Y_train, T_train, dataset_name, p_test, seed)
 
-                    if enable_wrapper:
-                        best_drop_vars, qini_values = do_general_wrapper_approach(models[model_name],
-                                                                                  data_dict, search_space)
-                        print('Drop vars:', best_drop_vars)
-                        var_sel_dict[model_name].append(qini_values)
+                if enable_wrapper and not niv_done:
+                    best_drop_vars, qini_values = do_general_wrapper_approach(models[model_name],
+                                                                              data_dict, search_space)
+                    print('Drop vars:', best_drop_vars)
+                    var_sel_dict[model_name].append(qini_values)
 
-                        data_dict['x_train'].drop(best_drop_vars, axis=1, inplace=True)
-                        data_dict['x_test'].drop(best_drop_vars, axis=1, inplace=True)
-                        X_train.drop(best_drop_vars, axis=1, inplace=True)
-                        X_test.drop(best_drop_vars, axis=1, inplace=True)
+                    data_dict['x_train'].drop(best_drop_vars, axis=1, inplace=True)
+                    data_dict['x_test'].drop(best_drop_vars, axis=1, inplace=True)
+                    X_train.drop(best_drop_vars, axis=1, inplace=True)
+                    X_test.drop(best_drop_vars, axis=1, inplace=True)
 
-                    if enable_tune_parameters:
-                        best_params = do_tuning_parameters(models[model_name], data_dict, search_space)
-                        print('Best params:', best_params)
-                    else:
-                        best_params = {}
+                if enable_tune_parameters:
+                    best_params = do_tuning_parameters(models[model_name], data_dict, search_space)
+                    print('Best params:', best_params)
                 else:
                     best_params = {}
 
@@ -262,7 +261,7 @@ def main():
         save_json(dataset_name + '_val_sel', var_sel_dict)
         save_json(dataset_name + '_qini', qini_dict)
 
-        display_results(qini_dict, var_sel_dict)
+        display_results(dataset_name, qini_dict, var_sel_dict)
 
 
 if __name__ == '__main__':
