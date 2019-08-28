@@ -3,10 +3,10 @@ from sklearn.linear_model import LogisticRegression, LinearRegression
 from models import model_tma, model_dta, model_lai, model_glai, model_rvtu, model_rf
 
 models = {
-    #'tma': model_tma,
+    'tma': model_tma,
     #'dta': model_dta,
     #'lai': model_lai,
-    'glai': model_glai,
+    #'glai': model_glai,
     #'trans': model_rvtu,
     #'urf_ed': model_rf,
     #'urf_kl': model_rf,
@@ -27,20 +27,18 @@ search_space = {
     'penalty': ['none', 'l2'],
     'tol': [1e-2, 1e-3, 1e-4],
     'C': [1e6, 1e3, 1, 1e-3, 1e-6],
-    'max_iter': [2],
 }
 search_space_for_linear = {
     'method': [LinearRegression],
 }
 search_space_for_tree = {
-    'ntree': [10, 20, ],
-    'mtry': [3, ],
+    'ntree': [10, 5, ],
+    # 'mtry': [3, ],  default = sqrt(#col)
     'bagging_fraction': [0.6, ],
-    # 'method': ['ED', ],
-    'max_depth': [10, 5, ],
+    'max_depth': [10, 7, 5, ],
     'min_split': [2000, 1000, ],
-    # 'min_bucket_t0': [100, ],
-    # 'min_bucket_t1': [100, ],
+    # 'min_bucket_t0': [100, ],  default = min_split / 4
+    # 'min_bucket_t1': [100, ],  default = min_split / 4
 }
 search_space_for_dta = {
     'method': [LogisticRegression],
