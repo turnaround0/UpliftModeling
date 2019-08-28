@@ -133,7 +133,7 @@ def main():
     parser.add_argument('-d', action='store_true', help='Only loading json files and display plots')
     args = parser.parse_args()
 
-    dataset_names = ['hillstrom']  # ['hillstrom', 'lalonde', 'criteo']
+    dataset_names = ['lalonde']  # ['hillstrom', 'lalonde', 'criteo']
 
     # Display only plots and tables with -d option
     if args.d:
@@ -160,16 +160,22 @@ def main():
         df = preprocess_data(df, dataset=dataset_name)
         X, Y, T, ty = assign_data(df)
 
+        print('Shape:', df.shape)
+
         if dataset_name == 'lalonde':
             print('== Sum of each group ==')
             print(Y.groupby(T).sum())
             print('== Count of each group ==')
             print(T.groupby(T).count())
             print('== Average of each group ==')
-            print(Y.groupby(T).sum() / T.groupby(T).count())
+            avg = Y.groupby(T).sum() / T.groupby(T).count()
+            print('Uplift:', avg[1] - avg[0])
         else:
+            count = ty.groupby(ty).count()
             print('== Count of each group ==')
-            print(ty.groupby(ty).count())
+            print(count)
+            uplift = count['TR'] / (count['TR'] + count['TN']) - count['CR'] / (count['CR'] + count['CN'])
+            print('Uplift:', uplift)
 
         # Cross-validation with K-fold
         qini_dict = {}
