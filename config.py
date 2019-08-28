@@ -37,8 +37,8 @@ search_space_for_tree = {
     'bagging_fraction': [0.6, ],
     'max_depth': [10, 5, ],
     'min_split': [2000, 1000, 500, ],
-    # 'min_bucket_t0': [100, ],  default = min_split / 4
-    # 'min_bucket_t1': [100, ],  default = min_split / 4
+    'min_bucket_t0': [100, 300, 500, ],  # default = min_split / 4
+    'min_bucket_t1': [100, 300, 500, ],  # default = min_split / 4
 }
 search_space_for_dta = {
     'method': [LogisticRegression],
