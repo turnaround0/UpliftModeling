@@ -46,10 +46,15 @@ def info_gain(df, attribute, predict_attr, treatment_attr,
         tmp['n_y_t1_R'] = sum(tmp['T'] & tmp['Y']) - (tmp['T'] & tmp['Y']).cumsum()
         tmp['n_y_t0_R'] = sum((tmp['T'] == 0) & tmp['Y']) - ((tmp['T'] == 0) & tmp['Y']).cumsum()
     else:
-        tmp['n_y_t1_L'] = tmp[tmp['T'] == 1]['Y'].cumsum()
-        tmp['n_y_t0_L'] = tmp[tmp['T'] == 0]['Y'].cumsum()
-        tmp['n_y_t1_R'] = tmp['n_y_t1_L'].values[-1] - tmp[tmp['T'] == 1]['Y'].cumsum()
-        tmp['n_y_t0_R'] = tmp['n_y_t0_L'].values[-1] - tmp[tmp['T'] == 0]['Y'].cumsum()
+        s_y_t1 = tmp['Y'].copy()
+        s_y_t1[tmp['T'] == 0] = 0
+        s_y_t0 = tmp['Y'].copy()
+        s_y_t0[tmp['T'] == 1] = 0
+
+        tmp['n_y_t1_L'] = s_y_t1.cumsum()
+        tmp['n_y_t0_L'] = s_y_t0.cumsum()
+        tmp['n_y_t1_R'] = tmp['n_y_t1_L'].values[-1] - s_y_t1.cumsum()
+        tmp['n_y_t0_R'] = tmp['n_y_t0_L'].values[-1] - s_y_t0.cumsum()
 
     # min bucket condition
     #   Check the size of treatment & control group in left & right child
@@ -68,17 +73,19 @@ def info_gain(df, attribute, predict_attr, treatment_attr,
             pr_t0 = 1 - pr_t1
             pr_y1_t1 = tr / (tr + tn)
             pr_y1_t0 = cr / (cr + cn)
+            div = 1
         else:
             n_t1 = tmp['T'].sum()
             n_t0 = num_total - n_t1
             pr_t1 = n_t1 / num_total
             pr_t0 = 1 - pr_t1
-            # 0 <= pr_y1_t1, pr_y1_t0 <= 1
-            max_y = tmp['Y'].max()
             s_y_t = tmp[tmp['T'] == 1]['Y']
             s_y_c = tmp[tmp['T'] == 0]['Y']
-            pr_y1_t1 = s_y_t.mean() / max_y
-            pr_y1_t0 = s_y_c.mean() / max_y
+            pr_y1_t1 = s_y_t.mean()
+            pr_y1_t0 = s_y_c.mean()
+            sum_y = tmp['Y'].sum()
+            pr_y1_t1 = pr_y1_t1 / sum_y
+            pr_y1_t0 = pr_y1_t0 / sum_y
 
         # Randomized assignment implies pr_l_t1 = pr_l_t0 for all possible splits
         pr_l_t1 = (tmp['n_t1_L']) / n_t1
@@ -91,6 +98,12 @@ def info_gain(df, attribute, predict_attr, treatment_attr,
         pr_y1_l_t0 = (tmp['n_y_t0_L']) / (tmp['n_t0_L'])
         pr_y1_r_t1 = (tmp['n_y_t1_R']) / (tmp['n_t1_R'])
         pr_y1_r_t0 = (tmp['n_y_t0_R']) / (tmp['n_t0_R'])
+
+        if not is_logistic:
+            pr_y1_l_t1 = pr_y1_l_t1 / sum_y
+            pr_y1_l_t0 = pr_y1_l_t0 / sum_y
+            pr_y1_r_t1 = pr_y1_r_t1 / sum_y
+            pr_y1_r_t0 = pr_y1_r_t0 / sum_y
 
         # Number of treatment/control observations at left and right child nodes
         n_t1_L = tmp['n_t1_L']
