@@ -73,19 +73,14 @@ def info_gain(df, attribute, predict_attr, treatment_attr,
             pr_t0 = 1 - pr_t1
             pr_y1_t1 = tr / (tr + tn)
             pr_y1_t0 = cr / (cr + cn)
-            div = 1
         else:
             n_t1 = tmp['T'].sum()
             n_t0 = num_total - n_t1
             pr_t1 = n_t1 / num_total
             pr_t0 = 1 - pr_t1
-            s_y_t = tmp[tmp['T'] == 1]['Y']
-            s_y_c = tmp[tmp['T'] == 0]['Y']
-            pr_y1_t1 = s_y_t.mean()
-            pr_y1_t0 = s_y_c.mean()
             sum_y = tmp['Y'].sum()
-            pr_y1_t1 = pr_y1_t1 / sum_y
-            pr_y1_t0 = pr_y1_t0 / sum_y
+            pr_y1_t1 = tmp[tmp['T'] == 1]['Y'].mean() / sum_y
+            pr_y1_t0 = tmp[tmp['T'] == 0]['Y'].mean() / sum_y
 
         # Randomized assignment implies pr_l_t1 = pr_l_t0 for all possible splits
         pr_l_t1 = (tmp['n_t1_L']) / n_t1
@@ -94,12 +89,13 @@ def info_gain(df, attribute, predict_attr, treatment_attr,
         pr_r = 1 - pr_l
 
         # Add Laplace correction to probabilities
-        pr_y1_l_t1 = (tmp['n_y_t1_L']) / (tmp['n_t1_L'])
-        pr_y1_l_t0 = (tmp['n_y_t0_L']) / (tmp['n_t0_L'])
-        pr_y1_r_t1 = (tmp['n_y_t1_R']) / (tmp['n_t1_R'])
-        pr_y1_r_t0 = (tmp['n_y_t0_R']) / (tmp['n_t0_R'])
+        pr_y1_l_t1 = tmp['n_y_t1_L'] / tmp['n_t1_L']
+        pr_y1_l_t0 = tmp['n_y_t0_L'] / tmp['n_t0_L']
+        pr_y1_r_t1 = tmp['n_y_t1_R'] / tmp['n_t1_R']
+        pr_y1_r_t0 = tmp['n_y_t0_R'] / tmp['n_t0_R']
 
         if not is_logistic:
+            sum_y = tmp['Y'].sum()
             pr_y1_l_t1 = pr_y1_l_t1 / sum_y
             pr_y1_l_t0 = pr_y1_l_t0 / sum_y
             pr_y1_r_t1 = pr_y1_r_t1 / sum_y
