@@ -72,13 +72,13 @@ def plot_fig7(dataset_name, qini_dict):
 
     # Draw random line
     qini_list = qini_dict[next(iter(qini_dict))]
-    s_random_inc_gains = pd.DataFrame(data=[q['random_inc_gains'] for q in qini_list]).mean() * 100
+    s_random_inc_gains = pd.DataFrame(data=[q['random_inc_gains'] for q in qini_list]).mean() * factor
     ax.plot(x_axis, s_random_inc_gains, label='Random')
 
     # Draw line for each model
     for model_name in qini_dict:
         qini_list = qini_dict[model_name]
-        s_inc_gains = pd.DataFrame(data=[q['inc_gains'] for q in qini_list]).mean() * 100
+        s_inc_gains = pd.DataFrame(data=[q['inc_gains'] for q in qini_list]).mean() * factor
         ax.plot(x_axis, s_inc_gains, label=model_name)
 
     ax.legend()
