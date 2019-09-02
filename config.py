@@ -1,3 +1,4 @@
+import numpy as np
 from sklearn.linear_model import LogisticRegression, LinearRegression
 
 from models import model_tma, model_dta, model_lai, model_glai, model_rvtu, model_rf
@@ -56,12 +57,16 @@ search_space_for_tree_criteo = {
     'max_depth': [10, ],
     'min_split': [50, 20, 5],
 }
+s = 2000.
+lalonde_bins = np.arange(-s, s * 10, s)
+lalonde_bins[0] = -float('inf')
+lalonde_bins[-1] = float('inf')
 search_space_for_tree_lalonde = {
     'ntree': [10, ],
     'bagging_fraction': [0.6, ],
     'max_depth': [10, ],
     'min_split': [20, 10, 5, ],
-    'is_logistic': [False],
+    'bins': [lalonde_bins],
 }
 urf_methods = {
     'urf_ed': 'ed',
