@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 import numpy as np
-import pandas as pd
 import time
 import argparse
 
@@ -74,7 +73,7 @@ def main():
 
                 X_test, X_train, T_test, T_train, Y_test, Y_train = data_reindex(train_index, test_index, X, T, Y)
 
-                over_sampling = config_set.get_option_method('over_sampling')
+                over_sampling = config_set.get_option_method('over_sampling', dataset_name, model_name)
                 if over_sampling:
                     X_train, T_train, Y_train = over_sampling(X_train, T_train, Y_train)
 

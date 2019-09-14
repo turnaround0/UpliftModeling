@@ -1,8 +1,9 @@
-from config import test_all, test
+from config import test_all, test, over
 
 config_set = {
     'test_all': test_all.config,
     'test': test.config,
+    'over': over.config,
 }
 
 option_models = {
@@ -28,21 +29,32 @@ class ConfigSet:
         if model is not None:
             return model
         else:
-            return test_all.config['dataset'][dataset_name][model_name]['model']
+            for check_name in test_all.config['dataset'][dataset_name]:
+                if model_name.startswith(check_name):
+                    return test_all.config['dataset'][dataset_name][check_name]['model']
+            return None
 
     def get_search_space(self, dataset_name, model_name):
         search_space = self.dataset[dataset_name][model_name].get('space')
         if search_space is not None:
             return search_space
         else:
-            return test_all.config['dataset'][dataset_name][model_name.replace('dt_', 'urf_')]['space']
+            check_model_name = model_name.replace('dt_', 'urf_')
+            for check_name in test_all.config['dataset'][dataset_name]:
+                if check_model_name.startswith(check_name):
+                    return test_all.config['dataset'][dataset_name][check_name]['space']
+            return None
 
     def get_default_params(self, dataset_name, model_name):
         params = self.dataset[dataset_name][model_name].get('params')
         if params is not None:
             return params
         else:
-            return test_all.config['dataset'][dataset_name][model_name.replace('dt_', 'urf_')]['params']
+            check_model_name = model_name.replace('dt_', 'urf_')
+            for check_name in test_all.config['dataset'][dataset_name]:
+                if check_model_name.startswith(check_name):
+                    return test_all.config['dataset'][dataset_name][check_name]['params']
+            return None
 
     def is_enable(self, option, dataset_name=None, model_name=None):
         option_enable = self.config_set.get(option)
@@ -60,5 +72,11 @@ class ConfigSet:
         else:
             return False
 
-    def get_option_method(self, option):
-        return self.config_set.get(option)
+    def get_option_method(self, option, dataset_name=None, model_name=None):
+        option_method = self.config_set.get(option)
+        if option_method is not None:
+            return option_method
+        elif dataset_name and model_name:
+            return self.dataset[dataset_name][model_name].get(option)
+        else:
+            return None

@@ -43,10 +43,10 @@ search_space_tree_criteo = {
 # Default parameters when not searching spaces
 params_logistic = {
     'method': LogisticRegression,
-    'solver': 'lbfgs',
-    'penalty': 'l2',
-    'tol': 1e-2,
-    'C': 1,
+    'solver': 'newton-cg',
+    'penalty': 'none',  # 'l2',
+    # 'tol': 1e-2,
+    # 'C': 1,
 }
 params_linear = {
     'method': LinearRegression,
