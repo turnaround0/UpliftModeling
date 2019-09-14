@@ -5,7 +5,6 @@ import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 
-from config import urf_methods
 from measure import performance, qini
 
 
@@ -235,13 +234,6 @@ def get_tuning_data_dict(X_train, Y_train, T_train, dataset_name, p_test, seed):
     }
 
 
-def insert_urf_method(model_name):
-    if model_name in urf_methods.keys():
-        return {'method': urf_methods[model_name]}
-    else:
-        return {}
-
-
 def do_drop_vars(best_drop_vars, data_dict, X_test, X_train):
     data_dict['x_train'].drop(best_drop_vars, axis=1, inplace=True)
     data_dict['x_test'].drop(best_drop_vars, axis=1, inplace=True)
@@ -273,7 +265,7 @@ def do_general_wrapper_approach(model, search_space, data_dict, X_test, X_train)
     return qini_values
 
 
-def do_tuning_parameters(model_name, model, data_dict, search_space):
+def do_tuning_parameters(model_name, model, search_space, data_dict):
     keys = search_space.keys()
     n_space = np.prod([len(search_space[key]) for key in keys])
 
@@ -291,10 +283,6 @@ def do_tuning_parameters(model_name, model, data_dict, search_space):
         best_params = {key: search_space[key][0] for key in keys}
 
     print('Best params:', best_params)
-
-    # In case of Uplift Random Forest tree,
-    # split criterion (ed, kl or others) should be set.
-    best_params.update(insert_urf_method(model_name))
 
     return best_params
 
