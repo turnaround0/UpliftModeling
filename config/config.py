@@ -31,7 +31,7 @@ class ConfigSet:
             return test_all.config['dataset'][dataset_name][model_name]['model']
 
     def get_search_space(self, dataset_name, model_name):
-        search_space = self.dataset[dataset_name][model_name].get('model')
+        search_space = self.dataset[dataset_name][model_name].get('space')
         if search_space is not None:
             return search_space
         else:
