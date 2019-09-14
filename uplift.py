@@ -74,8 +74,9 @@ def main():
 
                 X_test, X_train, T_test, T_train, Y_test, Y_train = data_reindex(train_index, test_index, X, T, Y)
 
-                if repeat_num:
-                    df = pd.concat([df] * repeat_num, axis=0).reset_index(drop=True)
+                over_sampling = config_set.get_option_method('over_sampling')
+                if over_sampling:
+                    X_train, T_train, Y_train = over_sampling(X_train, T_train, Y_train)
 
                 if config_set.is_enable('niv') and X_train.shape[1] > n_niv_params:
                     X_test, X_train = do_niv_variable_selection(X_test, X_train, T_train, Y_train, n_niv_params)

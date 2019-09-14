@@ -5,12 +5,6 @@ config_set = {
     'test': test.config,
 }
 
-urf_methods = {
-    'urf_ed': 'ed',
-    'urf_kl': 'kl',
-    'urf_chisq': 'chisq',
-    'urf_int': 'int'
-}
 option_models = {
     'wrapper': ['tma', 'dta', 'trans'],
     'tune': [],
@@ -41,14 +35,14 @@ class ConfigSet:
         if search_space is not None:
             return search_space
         else:
-            return test_all.config['dataset'][dataset_name][model_name]['space']
+            return test_all.config['dataset'][dataset_name][model_name.replace('dt_', 'urf_')]['space']
 
     def get_default_params(self, dataset_name, model_name):
         params = self.dataset[dataset_name][model_name].get('params')
         if params is not None:
             return params
         else:
-            return test_all.config['dataset'][dataset_name][model_name]['params']
+            return test_all.config['dataset'][dataset_name][model_name.replace('dt_', 'urf_')]['params']
 
     def is_enable(self, option, dataset_name=None, model_name=None):
         option_enable = self.config_set.get(option)
@@ -65,3 +59,6 @@ class ConfigSet:
                     return False
         else:
             return False
+
+    def get_option_method(self, option):
+        return self.config_set.get(option)

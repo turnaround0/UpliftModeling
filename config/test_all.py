@@ -59,6 +59,4 @@ config = {
     },
     'niv': True,
     'tune': True,
-    'over_sampling': False,
-    'feature_combination': False,
 }
