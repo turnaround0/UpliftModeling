@@ -1,5 +1,4 @@
-import tree
-import tree_bin
+from tree import tree, tree_bin
 
 
 # Decision tree model
