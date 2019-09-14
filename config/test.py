@@ -1,10 +1,13 @@
 from config import default
-from models import model_tma, model_dta, model_lai, model_glai, model_rvtu, model_rf_ed
+from models import model_tma, model_dta, model_lai, model_glai, model_rvtu, model_rf_ed, model_dt_ed
 
 config = {
     'dataset': {
         'hillstrom': {
-            'tma': {'model': model_tma, 'space': default.search_space_logistic},
+            'tma': {},
+            'dt_ed': {'model': model_dt_ed, 'space': default.search_space_tree_hillstrom,
+                      'params': default.params_tree_hillstrom},
+            'urf_ed': {},
         },
     },
     'wrapper': False,

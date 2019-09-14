@@ -30,10 +30,18 @@ class ConfigSet:
         return self.dataset[dataset_name].keys()
 
     def get_model(self, dataset_name, model_name):
-        return self.dataset[dataset_name][model_name]['model']
+        model = self.dataset[dataset_name][model_name].get('model')
+        if model is not None:
+            return model
+        else:
+            return test_all.config['dataset'][dataset_name][model_name]['model']
 
     def get_search_space(self, dataset_name, model_name):
-        return self.dataset[dataset_name][model_name]['space']
+        search_space = self.dataset[dataset_name][model_name].get('model')
+        if search_space is not None:
+            return search_space
+        else:
+            return test_all.config['dataset'][dataset_name][model_name]['space']
 
     def get_default_params(self, dataset_name, model_name):
         params = self.dataset[dataset_name][model_name].get('params')

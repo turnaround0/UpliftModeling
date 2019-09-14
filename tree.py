@@ -200,7 +200,7 @@ def choose_attr(df, attributes, predict_attr, treatment_attr,
 def build_tree(df, cols, predict_attr='Y', treatment_attr='T',
                method='ED', depth=1, max_depth=float('INF'),
                min_split=2000, min_bucket_t0=None, min_bucket_t1=None,
-               mtry=None, random_seed=1234):
+               mtry=None, random_seed=1234, **kwargs):
     """
     Builds the Decision Tree based on training data, attributes to train on,
     and a prediction attribute
