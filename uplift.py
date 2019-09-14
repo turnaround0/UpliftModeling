@@ -9,6 +9,7 @@ from helper import print_overview, plot_data
 from preprocess import preprocess_data, assign_data
 from tune import do_general_wrapper_approach, do_tuning_parameters, do_niv_variable_selection, get_tuning_data_dict
 from measure import performance, qini
+from plot import plot_table6
 
 # Parameters
 seed = 1234
@@ -92,6 +93,8 @@ def main():
                 else:
                     best_params = config_set.get_default_params(dataset_name, model_name)
 
+                print('Params:', best_params)
+
                 # Train model and predict outcomes
                 mdl = fit(X_train, Y_train, T_train, **best_params)
                 pred = predict(mdl, X_test, t=T_test)
@@ -116,6 +119,8 @@ def main():
 
         end_time = time.time()
         print('Total time:', end_time - start_time)
+
+        plot_table6(dataset_name, qini_dict)
 
 
 if __name__ == '__main__':

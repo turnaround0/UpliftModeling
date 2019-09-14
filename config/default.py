@@ -44,9 +44,9 @@ search_space_tree_criteo = {
 params_logistic = {
     'method': LogisticRegression,
     'solver': 'newton-cg',
-    'penalty': 'none',  # 'l2',
-    # 'tol': 1e-2,
-    # 'C': 1,
+    'penalty': 'l2',
+    'tol': 1e-2,
+    'C': 1,
 }
 params_linear = {
     'method': LinearRegression,
