@@ -7,7 +7,8 @@ from config.config import ConfigSet
 from dataset import load_data, save_json, create_fold, data_reindex
 from helper import print_overview, plot_data
 from preprocess import preprocess_data, assign_data
-from tune import do_general_wrapper_approach, do_tuning_parameters, do_niv_variable_selection, get_tuning_data_dict
+from tune import do_general_wrapper_approach, do_tuning_parameters, do_niv_variable_selection,\
+    get_tuning_data_dict, do_find_best_mlai_params
 from measure import performance, qini
 from plot import plot_table6
 
@@ -21,8 +22,8 @@ repeat_num = 0  # For small dataset with regression
 
 def main():
     parser = argparse.ArgumentParser(description='***** Uplift modeling *****')
-    parser.add_argument('-d', action='store_true', help='Only loading json files and display plots')
-    parser.add_argument('-s', action='store', help='Config set name (ex: -s test_all')
+    parser.add_argument('-d', action='store_true', help='Draw: Only loading json files and display plots')
+    parser.add_argument('-s', action='store', help='Set: Config set name (ex: -s test_all')
     args = parser.parse_args()
 
     if args.s:
@@ -89,7 +90,7 @@ def main():
                     var_sel_dict[model_name].append(qini_values)
 
                 if config_set.is_enable('tune'):
-                    best_params = do_tuning_parameters(model_name, model, search_space, data_dict)
+                    best_params = do_tuning_parameters(model, search_space, data_dict)
                 else:
                     best_params = config_set.get_default_params(dataset_name, model_name)
 
@@ -97,7 +98,13 @@ def main():
 
                 # Train model and predict outcomes
                 mdl = fit(X_train, Y_train, T_train, **best_params)
-                pred = predict(mdl, X_test, t=T_test)
+
+                mlai_params = config_set.get_option_method('mlai_values', dataset_name, model_name)
+                if mlai_params:
+                    alpha, beta = do_find_best_mlai_params(model, best_params, mlai_params, data_dict)
+                    pred = predict(mdl, X_test, t=T_test, alpha=alpha, beta=beta)
+                else:
+                    pred = predict(mdl, X_test, t=T_test)
 
                 # Perform to check performance with Qini curve
                 perf = performance(pred['pr_y1_t1'], pred['pr_y1_t0'], Y_test, T_test)

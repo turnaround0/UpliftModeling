@@ -1,5 +1,5 @@
 import time
-
+import itertools
 import numpy as np
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
@@ -203,6 +203,36 @@ def niv_variable_selection(x, y, t, max_vars):
     return s_selected_niv.index
 
 
+def find_mlai_best_params(fit_mdl, pred_mdl, data, model_params, mlai_pairs):
+    x_train = data['x_train']
+    y_train = data['y_train']
+    t_train = data['t_train']
+    x_test = data['x_test']
+    y_test = data['y_test']
+    t_test = data['t_test']
+
+    max_q = -float('inf')
+    best_pair = None
+
+    mdl = fit_mdl(x_train, y_train, t_train, **model_params)
+
+    for i, pair in enumerate(mlai_pairs):
+        pred = pred_mdl(mdl, newdata=x_test, y=y_test, t=t_test, alpha=pair[0], beta=pair[1])
+
+        try:
+            perf = performance(pred['pr_y1_t1'], pred['pr_y1_t0'], y_test, t_test)
+        except Exception as e:
+            print(e)
+            continue
+
+        q = qini(perf, plotit=False)['qini']
+        if q > max_q:
+            max_q = q
+            best_pair = pair
+
+    return best_pair
+
+
 def get_tuning_data_dict(X_train, Y_train, T_train, dataset_name, p_test, seed):
     df = X_train.copy()
     df['Y'] = Y_train
@@ -265,7 +295,7 @@ def do_general_wrapper_approach(model, search_space, data_dict, X_test, X_train)
     return qini_values
 
 
-def do_tuning_parameters(model_name, model, search_space, data_dict):
+def do_tuning_parameters(model, search_space, data_dict):
     keys = search_space.keys()
     n_space = np.prod([len(search_space[key]) for key in keys])
 
@@ -301,3 +331,18 @@ def do_niv_variable_selection(X_test, X_train, T_train, Y_train, n_niv_params):
     print('NIV time:', niv_end_time - niv_start_time)
 
     return X_test, X_train
+
+
+def do_find_best_mlai_params(model, model_params, mlai_params, data_dict):
+    tune_start_time = time.time()
+    print('Start finding best MLAI params')
+
+    mlai_pairs = list(itertools.product(mlai_params, mlai_params))
+
+    best_params = find_mlai_best_params(model.fit, model.predict, data_dict, model_params, mlai_pairs)
+
+    tune_end_time = time.time()
+    print('Tune time:', tune_end_time - tune_start_time)
+    print('Best MLAI params:', best_params[0], best_params[1])
+
+    return best_params

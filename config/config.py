@@ -1,9 +1,10 @@
-from config import test_all, test, over
+from config import test_all, test, over, mlai
 
 config_set = {
     'test_all': test_all.config,
     'test': test.config,
     'over': over.config,
+    'mlai': mlai.config,
 }
 
 option_models = {
@@ -39,7 +40,7 @@ class ConfigSet:
         if search_space is not None:
             return search_space
         else:
-            check_model_name = model_name.replace('dt_', 'urf_')
+            check_model_name = model_name.replace('dt_', 'urf_').replace('mlai', 'glai')
             for check_name in test_all.config['dataset'][dataset_name]:
                 if check_model_name.startswith(check_name):
                     return test_all.config['dataset'][dataset_name][check_name]['space']
@@ -50,7 +51,7 @@ class ConfigSet:
         if params is not None:
             return params
         else:
-            check_model_name = model_name.replace('dt_', 'urf_')
+            check_model_name = model_name.replace('dt_', 'urf_').replace('mlai', 'glai')
             for check_name in test_all.config['dataset'][dataset_name]:
                 if check_model_name.startswith(check_name):
                     return test_all.config['dataset'][dataset_name][check_name]['params']
