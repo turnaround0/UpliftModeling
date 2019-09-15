@@ -22,20 +22,20 @@ params_tree_criteo = {
 
 config = {
     'dataset': {
-        #'hillstrom': {
+        'hillstrom': {
         #    'dt_ed': {'model': model_dt_ed, 'params': params_tree_hillstrom},
         #    'dt_ed_ext': {'model': model_dt_ed_ext, 'params': params_tree_hillstrom,
+        #                  'max_round': 6, 'u_list': [1.5, 1.0, 0.7, 0.5, 0.3, -float('INF')]},
+            'tma_ext': {'model': model_tma_ext, 'max_round': 3, 'u_list': [1.0, 0.7, -float('INF')]},
+            'tma': {},
+        },
+        #'lalonde': {
+        #    'dt_ed': {'model': model_dt_ed, 'params': params_tree_lalonde},
+        #    'dt_ed_ext': {'model': model_dt_ed_ext, 'params': params_tree_lalonde,
         #                  'max_round': 6, 'u_list': [1.5, 1.0, 0.7, 0.5, 0.3, -float('INF')]},
         #    # 'tma_ext': {'model': model_tma_ext},
         #    # 'tma': {},
         #},
-        'lalonde': {
-            'dt_ed': {'model': model_dt_ed, 'params': params_tree_lalonde},
-            'dt_ed_ext': {'model': model_dt_ed_ext, 'params': params_tree_lalonde,
-                          'max_round': 6, 'u_list': [1.5, 1.0, 0.7, 0.5, 0.3, -float('INF')]},
-            # 'tma_ext': {'model': model_tma_ext},
-            # 'tma': {},
-        },
         #'criteo': {
         #    'dt_ed': {'model': model_dt_ed, 'params': params_tree_criteo},
         #    'dt_ed_ext': {'model': model_dt_ed_ext, 'params': params_tree_criteo,
