@@ -1,4 +1,4 @@
-from config import test_all, test, over, mlai, ext
+from config import test_all, test, over, mlai, ext, focus
 
 config_set = {
     'test_all': test_all.config,
@@ -6,6 +6,7 @@ config_set = {
     'over': over.config,
     'mlai': mlai.config,
     'ext': ext.config,
+    'focus': focus.config,
 }
 
 option_models = {

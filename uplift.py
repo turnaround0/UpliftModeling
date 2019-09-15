@@ -82,6 +82,11 @@ def main():
                     train_uplift = get_uplift(dataset_name, T_train, Y_train)
                     print('Train uplift:', train_uplift)
                     model.set_params(max_round, u_list, train_uplift)
+                elif model_name.endswith('_focus'):
+                    u_value = config_set.get_option('u_value', dataset_name, model_name)
+                    train_uplift = get_uplift(dataset_name, T_train, Y_train)
+                    print('Train uplift:', train_uplift)
+                    model.set_params(u_value, train_uplift)
 
                 over_sampling = config_set.get_option('over_sampling', dataset_name, model_name)
                 if over_sampling:
