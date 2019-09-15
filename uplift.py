@@ -5,7 +5,7 @@ import argparse
 
 from config.config import ConfigSet
 from dataset import load_data, save_json, create_fold, data_reindex
-from helper import print_overview, plot_data
+from helper import print_overview, plot_data, get_uplift
 from preprocess import preprocess_data, assign_data
 from tune import do_general_wrapper_approach, do_tuning_parameters, do_niv_variable_selection,\
     get_tuning_data_dict, do_find_best_mlai_params
@@ -55,6 +55,7 @@ def main():
         print_overview(dataset_name, df, T, Y, ty)
 
         model_names = config_set.get_model_names(dataset_name)
+        niv_results = []
 
         for model_name in model_names:
             print('* Model:', model_name)
@@ -75,12 +76,23 @@ def main():
 
                 X_test, X_train, T_test, T_train, Y_test, Y_train = data_reindex(train_index, test_index, X, T, Y)
 
-                over_sampling = config_set.get_option_method('over_sampling', dataset_name, model_name)
+                if model_name.endswith('_ext'):
+                    max_round = config_set.get_option('max_round', dataset_name, model_name)
+                    u_list = config_set.get_option('u_list', dataset_name, model_name)
+                    train_uplift = get_uplift(dataset_name, T_train, Y_train)
+                    print('Train uplift:', train_uplift)
+                    model.set_params(max_round, u_list, train_uplift)
+
+                over_sampling = config_set.get_option('over_sampling', dataset_name, model_name)
                 if over_sampling:
                     X_train, T_train, Y_train = over_sampling(X_train, T_train, Y_train)
 
                 if config_set.is_enable('niv') and X_train.shape[1] > n_niv_params:
-                    X_test, X_train = do_niv_variable_selection(X_test, X_train, T_train, Y_train, n_niv_params)
+                    if idx >= len(niv_results):
+                        X_test, X_train = do_niv_variable_selection(X_test, X_train, T_train, Y_train, n_niv_params)
+                        niv_results.append((X_test, X_train))
+                    else:
+                        X_test, X_train = niv_results[idx]
 
                 data_dict = get_tuning_data_dict(X_train, Y_train, T_train, dataset_name, p_test, seed)
                 search_space = config_set.get_search_space(dataset_name, model_name)
@@ -99,7 +111,7 @@ def main():
                 # Train model and predict outcomes
                 mdl = fit(X_train, Y_train, T_train, **best_params)
 
-                mlai_params = config_set.get_option_method('mlai_values', dataset_name, model_name)
+                mlai_params = config_set.get_option('mlai_values', dataset_name, model_name)
                 if mlai_params:
                     alpha, beta = do_find_best_mlai_params(model, best_params, mlai_params, data_dict)
                     pred = predict(mdl, X_test, t=T_test, alpha=alpha, beta=beta)

@@ -1,10 +1,11 @@
-from config import test_all, test, over, mlai
+from config import test_all, test, over, mlai, ext
 
 config_set = {
     'test_all': test_all.config,
     'test': test.config,
     'over': over.config,
     'mlai': mlai.config,
+    'ext': ext.config,
 }
 
 option_models = {
@@ -73,7 +74,7 @@ class ConfigSet:
         else:
             return False
 
-    def get_option_method(self, option, dataset_name=None, model_name=None):
+    def get_option(self, option, dataset_name=None, model_name=None):
         option_method = self.config_set.get(option)
         if option_method is not None:
             return option_method

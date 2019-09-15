@@ -253,6 +253,15 @@ def build_tree(df, cols, predict_attr='Y', treatment_attr='T',
         leaf = Node(None, None)
         leaf.leaf = True
         leaf.predict = (tr / (tr + tn), cr / (cr + cn))
+
+        # Tree extraction method
+        u_value = kwargs.get('u_value')
+        if u_value is not None:
+            ext_idx_list = kwargs['ext_idx_list']
+            uplift = leaf.predict[0] - leaf.predict[1]
+            if uplift > u_value:
+                ext_idx_list += df.index.tolist()
+
         return leaf
     else:
         # Create internal tree node based on attribute and it's threshold
@@ -263,11 +272,11 @@ def build_tree(df, cols, predict_attr='Y', treatment_attr='T',
         tree.left = build_tree(sub_1, cols, predict_attr, treatment_attr,
                                method=method, depth=depth + 1, max_depth=max_depth,
                                min_split=min_split, min_bucket_t0=min_bucket_t0,
-                               min_bucket_t1=min_bucket_t1, mtry=mtry)
+                               min_bucket_t1=min_bucket_t1, mtry=mtry, **kwargs)
         tree.right = build_tree(sub_2, cols, predict_attr, treatment_attr,
                                 method=method, depth=depth + 1, max_depth=max_depth,
                                 min_split=min_split, min_bucket_t0=min_bucket_t0,
-                                min_bucket_t1=min_bucket_t1, mtry=mtry)
+                                min_bucket_t1=min_bucket_t1, mtry=mtry, **kwargs)
         return tree
 
 

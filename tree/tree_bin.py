@@ -186,7 +186,7 @@ def choose_attr(df, attributes, predict_attr, treatment_attr,
 def build_tree(df, cols, predict_attr='Y', treatment_attr='T',
                method='ED', depth=1, max_depth=float('INF'),
                min_split=2000, min_bucket_t0=None, min_bucket_t1=None,
-               mtry=None, random_seed=1234, bins=None, nbin=10):
+               mtry=None, random_seed=1234, bins=None, nbin=10, **kwargs):
     """
     Builds the Decision Tree based on training data, attributes to train on,
     and a prediction attribute
@@ -249,6 +249,15 @@ def build_tree(df, cols, predict_attr='Y', treatment_attr='T',
         leaf.leaf = True
         leaf.predict = (sum(df[(df[treatment_attr] == 1)][predict_attr]) / (tr + tn),
                         sum(df[(df[treatment_attr] == 0)][predict_attr]) / (cr + cn))
+
+        # Tree extraction method
+        u_value = kwargs.get('u_value')
+        if u_value is not None:
+            ext_idx_list = kwargs['ext_idx_list']
+            uplift = leaf.predict[0] - leaf.predict[1]
+            if uplift > u_value:
+                ext_idx_list += df.index.tolist()
+
         return leaf
     else:
         # Create internal tree node based on attribute and it's threshold
@@ -260,12 +269,12 @@ def build_tree(df, cols, predict_attr='Y', treatment_attr='T',
                                method=method, depth=depth + 1, max_depth=max_depth,
                                min_split=min_split, min_bucket_t0=min_bucket_t0,
                                min_bucket_t1=min_bucket_t1, mtry=mtry,
-                               bins=bins)
+                               bins=bins, **kwargs)
         tree.right = build_tree(sub_2, cols, predict_attr, treatment_attr,
                                 method=method, depth=depth + 1, max_depth=max_depth,
                                 min_split=min_split, min_bucket_t0=min_bucket_t0,
                                 min_bucket_t1=min_bucket_t1, mtry=mtry,
-                                bins=bins)
+                                bins=bins, **kwargs)
         return tree
 
 
