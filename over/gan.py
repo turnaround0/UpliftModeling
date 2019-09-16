@@ -1,254 +1,127 @@
 import numpy as np
-import tensorflow as tf
+import pandas as pd
+from tensorflow import keras
 
 
-def lrelu(x, leak=0.2):
-    f1 = 0.5 * (1 + leak)
-    f2 = 0.5 * (1 - leak)
-    return f1 * x + f2 * abs(x)
+def get_optimizer(learning_rate, beta_1):
+    return keras.optimizers.Adam(lr=learning_rate, beta_1=beta_1)
 
 
-def model_inputs(image_width, image_height, image_channels, z_dim):
-    """
-    Create the model inputs
-    :param image_width: The input image width
-    :param image_height: The input image height
-    :param image_channels: The number of image channels
-    :param z_dim: The dimension of Z
-    :return: Tuple of (tensor of real input images, tensor of z data, learning rate)
-    """
-    inputs_real = tf.placeholder(tf.float32, (None, image_width, image_height, image_channels), name='input_real')
-    inputs_z = tf.placeholder(tf.float32, (None, z_dim), name='input_z')
-    lr = tf.placeholder(tf.float32, name='learning_rate')
+def build_generator(input_dim, output_dim):
+    model = keras.Sequential([
+        keras.layers.Dense(64, input_dim=input_dim),
+        keras.layers.LeakyReLU(0.2),
 
-    return inputs_real, inputs_z, lr
+        keras.layers.Dense(32),
+        keras.layers.LeakyReLU(0.2),
 
+        keras.layers.Dense(output_dim, activation='sigmoid')
+    ])
+    model.summary()
 
-def discriminator(images, reuse=False):
-    """
-    Create the discriminator network
-    :param images: Tensor of input image(s)
-    :param reuse: Boolean if the weights should be reused
-    :return: Tuple of (tensor output of the discriminator, tensor logits of the discriminator)
-    """
-    init_depth = 64
-    drop_rate = 0.2
+    noise = keras.layers.Input(shape=(input_dim,))
+    data = model(noise)
 
-    with tf.variable_scope('discriminator', reuse=reuse):
-        # input: (28,28,1) or (28, 28, 3)
-        # x1: (14, 14, 64)
-        x1 = tf.layers.conv2d(images, init_depth, 7, strides=2, padding='same',
-                              kernel_initializer=tf.contrib.layers.xavier_initializer())
-        x1 = lrelu(x1)
-        x1 = tf.layers.dropout(x1, drop_rate, training=True)
-
-        # x2: (7, 7, 128)
-        depth = int(x1.shape[3]) * 2
-        x2 = tf.layers.conv2d(x1, depth, 5, strides=2, padding='same',
-                              kernel_initializer=tf.contrib.layers.xavier_initializer())
-        x2 = tf.layers.batch_normalization(x2, training=True)
-        x2 = lrelu(x2)
-
-        # x3: (4, 4, 256)
-        depth = int(x2.shape[3]) * 2
-        x3 = tf.layers.conv2d(x2, depth, 3, strides=2, padding='same',
-                              kernel_initializer=tf.contrib.layers.xavier_initializer())
-        x3 = tf.layers.batch_normalization(x3, training=True)
-        x3 = lrelu(x3)
-        x3 = tf.layers.dropout(x3, drop_rate, training=True)
-
-        # x4: (2, 2, 512)
-        depth = int(x3.shape[3]) * 2
-        x4 = tf.layers.conv2d(x3, depth, 3, strides=2, padding='same',
-                              kernel_initializer=tf.contrib.layers.xavier_initializer())
-        x4 = lrelu(x4)
-
-        # flat: (2048)
-        flat = tf.contrib.layers.flatten(x4)
-        logits = tf.layers.dense(flat, 1, activation=None)
-        out = tf.sigmoid(logits)
-
-    return out, logits
+    return keras.models.Model(noise, data)
 
 
-def generator(z, out_channel_dim, is_train=True):
-    """
-    Create the generator network
-    :param z: Input z
-    :param out_channel_dim: The number of channels in the output image
-    :param is_train: Boolean if generator is being used for training
-    :return: The tensor output of the generator
-    """
-    reuse = not is_train
-    init_width = init_height = 4
-    init_depth = 256
+def build_discriminator(input_dim):
+    model = keras.Sequential([
+        keras.layers.Dense(64, input_dim=input_dim),
+        keras.layers.LeakyReLU(0.2),
 
-    with tf.variable_scope('generator', reuse=reuse):
-        # input: (z_dim)
-        # x1: (4, 4, 256)
-        x1 = tf.layers.dense(z, init_width * init_height * init_depth)
-        x1 = tf.reshape(x1, (-1, init_width, init_height, init_depth))
-        x1 = tf.layers.batch_normalization(x1, training=is_train)
-        x1 = lrelu(x1)
+        keras.layers.Dense(32),
+        keras.layers.LeakyReLU(0.2),
 
-        # x2: (7, 7, 128)
-        depth = int(int(x1.shape[3]) / 2)
-        x2 = tf.layers.conv2d_transpose(x1, depth, 4, strides=1, padding='valid',
-                                        kernel_initializer=tf.contrib.layers.xavier_initializer())
-        x2 = tf.layers.batch_normalization(x2, training=is_train)
-        x2 = lrelu(x2)
+        keras.layers.Dense(1, activation='sigmoid')
+    ])
+    model.summary()
 
-        # x3: (14, 14, 64)
-        depth = int(int(x2.shape[3]) / 2)
-        x3 = tf.layers.conv2d_transpose(x2, depth, 5, strides=2, padding='same',
-                                        kernel_initializer=tf.contrib.layers.xavier_initializer())
-        x3 = tf.layers.batch_normalization(x3, training=is_train)
-        x3 = lrelu(x3)
+    data = keras.layers.Input(shape=input_dim)
+    validity = model(data)
 
-        # x4: (14, 14, 32)
-        depth = int(int(x3.shape[3]) / 2)
-        x4 = tf.layers.conv2d_transpose(x3, depth, 5, strides=1, padding='same',
-                                        kernel_initializer=tf.contrib.layers.xavier_initializer())
-        x4 = tf.layers.batch_normalization(x4, training=is_train)
-        x4 = lrelu(x4)
-
-        # logits: (28, 28, out_channel_dim)
-        logits = tf.layers.conv2d_transpose(x4, out_channel_dim, 5, strides=2, padding='same',
-                                            kernel_initializer=tf.contrib.layers.xavier_initializer())
-        out = tf.tanh(logits)
-
-    return out
+    return keras.models.Model(data, validity)
 
 
-def model_loss(input_real, input_z, out_channel_dim):
-    """
-    Get the loss for the discriminator and generator
-    :param input_real: Images from the real dataset
-    :param input_z: Z input
-    :param out_channel_dim: The number of channels in the output image
-    :return: A tuple of (discriminator loss, generator loss)
-    """
-    g_model = generator(input_z, out_channel_dim)
-    d_model_real, d_logits_real = discriminator(input_real)
-    d_model_fake, d_logits_fake = discriminator(g_model, reuse=True)
+def build_gan_network(learning_rate, beta_1, input_dim, output_dim):
+    optimizer = keras.optimizers.Adam(lr=learning_rate, beta_1=beta_1)
 
-    d_loss_real = tf.reduce_mean(
-        tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_real,
-                                                labels=tf.ones_like(d_model_real) * np.random.uniform(0.7, 1.2)))
-    d_loss_fake = tf.reduce_mean(
-        tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_fake,
-                                                labels=tf.ones_like(d_model_fake) * np.random.uniform(0.0, 0.3)))
-    g_loss = tf.reduce_mean(
-        tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_fake,
-                                                labels=tf.ones_like(d_model_fake)))
-    d_loss = d_loss_real + d_loss_fake
+    # Build and compile the discriminator
+    discriminator = build_discriminator(input_dim)
+    discriminator.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
 
-    return d_loss, g_loss
+    # Build the generator
+    generator = build_generator(input_dim, output_dim)
 
+    # The generator takes noise as input and generates data
+    z = keras.layers.Input(shape=(input_dim,))
+    data = generator(z)
 
-def model_opt(d_loss, g_loss, learning_rate, beta1):
-    """
-    Get optimization operations
-    :param d_loss: Discriminator loss Tensor
-    :param g_loss: Generator loss Tensor
-    :param learning_rate: Learning Rate Placeholder
-    :param beta1: The exponential decay rate for the 1st moment in the optimizer
-    :return: A tuple of (discriminator training operation, generator training operation)
-    """
-    t_vars = tf.trainable_variables()
-    d_vars = [var for var in t_vars if var.name.startswith('discriminator')]
-    g_vars = [var for var in t_vars if var.name.startswith('generator')]
+    # For the combined model we will only train the generator
+    discriminator.trainable = False
 
-    with tf.control_dependencies(tf.get_collection(tf.GraphKeys.UPDATE_OPS)):
-        d_train_opt = tf.train.AdamOptimizer(learning_rate, beta1=beta1).minimize(d_loss, var_list=d_vars)
-        g_train_opt = tf.train.AdamOptimizer(learning_rate, beta1=beta1).minimize(g_loss, var_list=g_vars)
+    # The discriminator takes generated images as input and determines validity
+    validity = discriminator(data)
 
-    return d_train_opt, g_train_opt
+    # The combined model  (stacked generator and discriminator)
+    # Trains the generator to fool the discriminator
+    combined = keras.models.Model(z, validity)
+    combined.compile(loss='binary_crossentropy', optimizer=optimizer)
+
+    return generator, discriminator, combined
 
 
-def show_generator_output(sess, n_images, input_z, out_channel_dim, image_mode):
-    """
-    Show example output for the generator
-    :param sess: TensorFlow session
-    :param n_images: Number of Images to display
-    :param input_z: Input Z Tensor
-    :param out_channel_dim: The number of channels in the output image
-    :param image_mode: The mode to use for images ("RGB" or "L")
-    """
-    cmap = None if image_mode == 'RGB' else 'gray'
-    z_dim = input_z.get_shape().as_list()[-1]
-    example_z = np.random.uniform(-1, 1, size=[n_images, z_dim])
+def train(df, epochs, batch_size, input_dim, generator, discriminator, combined):
+    # TODO: Input normalization
 
-    samples = sess.run(
-        generator(input_z, out_channel_dim, False),
-        feed_dict={input_z: example_z})
+    # Adversarial ground truths
+    valid = np.ones((batch_size, 1))
+    fake = np.zeros((batch_size, 1))
 
-    images_grid = helper.images_square_grid(samples, image_mode)
-    pyplot.imshow(images_grid, cmap=cmap)
-    pyplot.show()
+    for epoch in range(epochs):
+        ## Train Discriminator
+        # Select a random batch of images
+        idx = np.random.randint(0, df.shape[0], batch_size)
+        selected_df = df.loc[idx]
 
+        # Generate a batch of new data
+        noise = np.random.normal(0, 1, (batch_size, input_dim))
+        generated_data = generator.predict(noise)
+        print('START gen')
+        print(generated_data)
+        print('END gen')
 
-def train(epoch_count, batch_size, z_dim, learning_rate, beta1, get_batches, data_shape, data_image_mode):
-    """
-    Train the GAN
-    :param epoch_count: Number of epochs
-    :param batch_size: Batch Size
-    :param z_dim: Z dimension
-    :param learning_rate: Learning Rate
-    :param beta1: The exponential decay rate for the 1st moment in the optimizer
-    :param get_batches: Function to get batches
-    :param data_shape: Shape of the data
-    :param data_image_mode: The image mode to use for images ("RGB" or "L")
-    """
-    n_iters = data_shape[0] // batch_size
-    n_show_image = 25
-    image_width = data_shape[1]
-    image_height = data_shape[2]
-    image_channels = data_shape[3]
+        # Train the discriminator
+        discriminator.trainable = True
+        d_loss_real = discriminator.train_on_batch(selected_df, valid)
+        d_loss_fake = discriminator.train_on_batch(generated_data, fake)
+        d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
 
-    input_real, input_z, lr = model_inputs(image_width, image_height, image_channels, z_dim)
-    d_loss, g_loss = model_loss(input_real, input_z, image_channels)
-    d_opt, g_opt = model_opt(d_loss, g_loss, lr, beta1)
+        ## Train Generator
+        # Train the generator (to have the discriminator label samples as valid)
+        noise = np.random.normal(0, 1, (batch_size, input_dim))
+        discriminator.trainable = False
+        g_loss = combined.train_on_batch(noise, valid)
 
-    with tf.Session() as sess:
-        sess.run(tf.global_variables_initializer())
-        for epoch_i in range(epoch_count):
-            steps = 0
-            for batch_images in get_batches(batch_size):
-                steps += 1
-
-                batch_z = np.random.uniform(-1, 1, size=(batch_size, z_dim))
-                # original scale of batch_images is from -0.5 to 0.5
-                # scale up to -1.0 ~ 1.0 for matching generator outputs
-                batch_images *= 2
-
-                _ = sess.run(d_opt, feed_dict={input_real: batch_images, input_z: batch_z, lr: learning_rate})
-                _ = sess.run(g_opt, feed_dict={input_real: batch_images, input_z: batch_z, lr: learning_rate})
-
-                if steps % 100 == 0 or steps == n_iters:
-                    train_loss_d = d_loss.eval({input_real: batch_images, input_z: batch_z})
-                    train_loss_g = g_loss.eval({input_z: batch_z})
-
-                    print("Epoch {}/{} Steps {}/{}...".format(epoch_i + 1, epoch_count, steps, n_iters),
-                          "Discriminator Loss: {:.4f}...".format(train_loss_d),
-                          "Generator Loss: {:.4f}...".format(train_loss_g))
-
-                    show_generator_output(sess, n_show_image, input_z, image_channels, data_image_mode)
-
-
-def make():
-    batch_size = 64
-    z_dim = 100
-    learning_rate = 0.0005
-    beta1 = 0.5
-    tf.reset_default_graph()
-    epochs = 2
-
-    mnist_dataset = helper.Dataset('mnist', glob(os.path.join(data_dir, 'mnist/*.jpg')))
-    with tf.Graph().as_default():
-        train(epochs, batch_size, z_dim, learning_rate, beta1, mnist_dataset.get_batches,
-              mnist_dataset.shape, mnist_dataset.image_mode)
+        # Plot the progress
+        print ("%d [D loss: %f, acc.: %.2f%%] [G loss: %f]" % (epoch, d_loss[0], 100 * d_loss[1], g_loss))
 
 
 def over_sampling(X, T, Y):
+    # Hyper-parameters
+    learning_rate = 0.0002
+    beta1 = 0.5
+    batch_size = 64
+    epochs = 100
+
+    df = pd.concat([X, T, Y], axis=1)
+
+    input_dim = df.shape[1]
+    output_dim = df.shape[1]
+
+    keras.backend.clear_session()
+
+    generator, discriminator, combined = build_gan_network(learning_rate, beta1, input_dim, output_dim)
+    train(df, epochs, batch_size, input_dim, generator, discriminator, combined)
+
     return X, T, Y
