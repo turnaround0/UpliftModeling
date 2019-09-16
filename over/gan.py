@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 from tensorflow import keras
 
+from tree.tree import num_class
+
 
 def build_generator(data_dim, latent_dim):
     model = keras.Sequential([
@@ -111,17 +113,6 @@ def train(df, epochs, batch_size, latent_dim, generator, discriminator, combined
             if (idx % (batch_size * 100)) == 0 or idx == last_idx - batch_size:
                 print("%d/%d [D loss: %f, acc.: %.2f%%] [G loss: %f]" %
                       (epoch, idx, d_loss[0], 100 * d_loss[1], g_loss))
-
-
-def num_class(df, predict_attr, treatment_attr):
-    """
-    Returns the number of Responders and Non-responders in Treatment and Control group
-    """
-    tr = df[(df[predict_attr] == 1) & (df[treatment_attr] == 1)]  # Responders in Treatment group
-    tn = df[(df[predict_attr] == 0) & (df[treatment_attr] == 1)]  # Non-responders in Treatment group
-    cr = df[(df[predict_attr] == 1) & (df[treatment_attr] == 0)]  # Responders in Control group
-    cn = df[(df[predict_attr] == 0) & (df[treatment_attr] == 0)]  # Non-responders in Control group
-    return tr.shape[0], tn.shape[0], cr.shape[0], cn.shape[0]
 
 
 # Make fake data for balance among TR, TN, CR, CN
