@@ -337,6 +337,25 @@ def do_find_best_mlai_params(model, model_params, mlai_params, data_dict):
     tune_start_time = time.time()
     print('Start finding best MLAI params')
 
+    """
+    df = data_dict['x_train'].copy()
+    df['Y'] = data_dict['y_train']
+    df['T'] = data_dict['t_train']
+
+    tr, tn, cr, cn = num_class(df, 'Y', 'T')
+    pr_y1_t1 = tr / (tr + tn)
+    pr_y1_t0 = cr / (cr + cn)
+    pr_y0_t1 = tn / (tr + tn)
+    pr_y0_t0 = cn / (cr + cn)
+
+    tr_cn = [np.sum(pr_y1_t1 * np.log(pr_y1_t1 / pr_y0_t0)),
+             np.sum(pr_y0_t0 * np.log(pr_y0_t0) / pr_y1_t1)]
+    cr_tn = [np.sum(pr_y1_t0 * np.log(pr_y1_t0 / pr_y0_t1)),
+             np.sum(pr_y0_t1 * np.log(pr_y0_t1 / pr_y1_t0))]
+
+    mlai_pairs = list(itertools.product(tr_cn, cr_tn))
+    """
+    
     mlai_pairs = list(itertools.product(mlai_params, mlai_params))
 
     best_params = find_mlai_best_params(model.fit, model.predict, data_dict, model_params, mlai_pairs)
