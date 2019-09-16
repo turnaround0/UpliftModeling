@@ -16,6 +16,6 @@ config = {
         },
     },
     'wrapper': False,
-    'niv': False,
+    'niv': True,
     'tune': False,
 }
