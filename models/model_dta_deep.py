@@ -18,7 +18,7 @@ def build_model_for_linear(x_len):
 
     adam = keras.optimizers.Adam(lr=0.001)
     model.compile(optimizer=adam, loss='mean_squared_error', metrics=['accuracy'])
-    model.summary()
+    # model.summary()
 
     return model
 
@@ -41,7 +41,7 @@ def build_model(x_len):
 
     adam = keras.optimizers.Adam(lr=0.0001)
     model.compile(optimizer=adam, loss='binary_crossentropy', metrics=['accuracy'])
-    model.summary()
+    # model.summary()
 
     return model
 
@@ -81,5 +81,4 @@ def predict(obj, newdata, y_name='y', t_name='treated', **kwargs):
         "pr_y1_t1": pred_treat,
         "pr_y1_t0": pred_control,
     })
-    print(pred_df)
     return pred_df
