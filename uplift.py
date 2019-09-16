@@ -88,16 +88,16 @@ def main():
                     print('Train uplift:', train_uplift)
                     model.set_params(u_value, train_uplift)
 
-                over_sampling = config_set.get_option('over_sampling', dataset_name, model_name)
-                if over_sampling:
-                    X_train, T_train, Y_train = over_sampling(X_train, T_train, Y_train)
-
                 if config_set.is_enable('niv') and X_train.shape[1] > n_niv_params:
                     if idx >= len(niv_results):
                         X_test, X_train = do_niv_variable_selection(X_test, X_train, T_train, Y_train, n_niv_params)
                         niv_results.append((X_test, X_train))
                     else:
                         X_test, X_train = niv_results[idx]
+
+                over_sampling = config_set.get_option('over_sampling', dataset_name, model_name)
+                if over_sampling:
+                    X_train, T_train, Y_train = over_sampling(X_train, T_train, Y_train)
 
                 data_dict = get_tuning_data_dict(X_train, Y_train, T_train, dataset_name, p_test, seed)
                 search_space = config_set.get_search_space(dataset_name, model_name)
