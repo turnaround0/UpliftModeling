@@ -6,8 +6,12 @@ config = {
             'glai': {},
             'mlai': {'model': model_mlai, 'mlai_values': [0, 0.3, 0.5, 0.7, 1]},
         },
+        'criteo': {
+            'glai': {},
+            'mlai': {'model': model_mlai, 'mlai_values': [0, 0.3, 0.5, 0.7, 1]},
+        },
     },
     'wrapper': False,
-    'niv': False,
+    'niv': True,
     'tune': False,
 }
