@@ -2,33 +2,45 @@ import pandas as pd
 from tensorflow import keras
 
 
+def build_model_for_linear(x_len):
+    model = keras.Sequential([
+        keras.layers.Dense(256, input_shape=(x_len,), kernel_initializer='normal'),
+        keras.layers.LeakyReLU(),
+
+        keras.layers.Dense(128, kernel_initializer='normal'),
+        keras.layers.LeakyReLU(),
+
+        keras.layers.Dense(32, kernel_initializer='normal'),
+        keras.layers.LeakyReLU(),
+
+        keras.layers.Dense(1, kernel_initializer='normal'),
+    ])
+
+    adam = keras.optimizers.Adam(lr=0.001)
+    model.compile(optimizer=adam, loss='mean_squared_error', metrics=['accuracy'])
+    model.summary()
+
+    return model
+
+
 def build_model(x_len):
     model = keras.Sequential([
         keras.layers.Dense(128, input_shape=(x_len,)),
-        keras.layers.LeakyReLU(0.2),
+        keras.layers.LeakyReLU(),
         keras.layers.BatchNormalization(),
-
-        keras.layers.Dense(64),
-        keras.layers.LeakyReLU(0.2),
-        keras.layers.Dropout(0.2),
 
         keras.layers.Dense(32),
-        keras.layers.LeakyReLU(0.2),
-        keras.layers.BatchNormalization(),
-
-        keras.layers.Dense(16),
-        keras.layers.LeakyReLU(0.2),
+        keras.layers.LeakyReLU(),
         keras.layers.Dropout(0.2),
 
         keras.layers.Dense(8),
-        keras.layers.LeakyReLU(0.2),
+        keras.layers.LeakyReLU(),
 
         keras.layers.Dense(1, activation='sigmoid'),
     ])
 
     adam = keras.optimizers.Adam(lr=0.0001)
-    model.compile(optimizer=adam, loss='binary_crossentropy',
-                  metrics=['accuracy', 'binary_crossentropy'])
+    model.compile(optimizer=adam, loss='binary_crossentropy', metrics=['accuracy'])
     model.summary()
 
     return model
@@ -40,8 +52,12 @@ def fit(x, y, t, **kwargs):
         df["Int_" + col_name] = x[col_name] * t
     df['treated'] = t
 
-    model = build_model(df.shape[1])
-    model.fit(df, y, epochs=200, batch_size=64)  # , validation_data=(df, y))
+    if kwargs.get('method') == 'logistic':
+        model = build_model(df.shape[1])
+    else:
+        model = build_model_for_linear(df.shape[1])
+
+    model.fit(df, y, epochs=50, batch_size=64)
 
     return model
 
@@ -65,4 +81,5 @@ def predict(obj, newdata, y_name='y', t_name='treated', **kwargs):
         "pr_y1_t1": pred_treat,
         "pr_y1_t0": pred_control,
     })
+    print(pred_df)
     return pred_df
