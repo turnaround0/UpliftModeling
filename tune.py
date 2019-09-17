@@ -351,12 +351,24 @@ def do_find_best_mlai_params(model, model_params, mlai_params, data_dict):
         pr_y0_t1 = tn / (tr + tn)
         pr_y0_t0 = cn / (cr + cn)
 
-        tr_cn = [np.sum(pr_y1_t1 * np.log(pr_y1_t1 / pr_y0_t0)),
-                 np.sum(pr_y0_t0 * np.log(pr_y0_t0) / pr_y1_t1)]
-        cr_tn = [np.sum(pr_y1_t0 * np.log(pr_y1_t0 / pr_y0_t1)),
-                 np.sum(pr_y0_t1 * np.log(pr_y0_t1 / pr_y1_t0))]
+        # similarity for cn with tr
+        ed_gain = (pr_y1_t1 - pr_y0_t0) ** 2
+        gini_tr_cn = 2 * pr_y1_t1 * pr_y0_t0 * (1 - pr_y1_t1) * (1 - pr_y0_t0)
+        gini_tr = 2 * pr_y1_t1 * (1 - pr_y1_t1)
+        gini_cn = 2 * pr_y0_t0 * (1 - pr_y0_t0)
+        ed_norm = gini_tr_cn * ed_gain + gini_tr * pr_y1_t1 + gini_cn * pr_y0_t0 + 0.5
+        tr_cn = ed_gain / ed_norm
 
-        mlai_pairs = list(itertools.product(tr_cn, cr_tn))
+        # similarity for tn with cr
+        ed_gain = (pr_y0_t1 - pr_y1_t0) ** 2
+        gini_tn_cr = 2 * pr_y0_t1 * pr_y1_t0 * (1 - pr_y0_t1) * (1 - pr_y1_t0)
+        gini_tn = 2 * pr_y0_t1 * (1 - pr_y0_t1)
+        gini_cr = 2 * pr_y1_t0 * (1 - pr_y1_t0)
+        ed_norm = gini_tn_cr * ed_gain + gini_tn * pr_y0_t1 + gini_cr * pr_y1_t0 + 0.5
+        cr_tn = ed_gain / ed_norm
+
+        print('Best MLAI params:', tr_cn, cr_tn)
+        return tr_cn, cr_tn
     else:
         mlai_pairs = list(itertools.product(mlai_params, mlai_params))
 
