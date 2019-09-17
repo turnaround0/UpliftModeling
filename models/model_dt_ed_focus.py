@@ -1,9 +1,7 @@
 import numpy as np
-import pandas as pd
 from models import model_dt
 
 ext_params = {}
-predict_option = 2
 
 
 def set_params(u_value, uplift):
@@ -39,18 +37,4 @@ def predict(obj, newdata, **kwargs):
     u_value = ext_params['u_value']
     all_fit, select_fit = obj
 
-    if predict_option == 1:
-        all_pred = model_dt.predict(all_fit, newdata, **kwargs)
-        select_pred = model_dt.predict(select_fit, newdata, **kwargs)
-
-        meet = pd.Series(select_pred['pr_y1_t1'] - select_pred['pr_y1_t0'] > u_value)
-        pred = all_pred
-        pred[meet] = select_pred[meet]
-
-        print('Number of meet samples:', meet.sum(), '/', len(meet))
-        return pred
-    elif predict_option == 2:
-        return model_dt.predict(select_fit, newdata, **kwargs)
-    else:
-        print('Prediction option is wrong.')
-        assert()
+    return model_dt.predict(select_fit, newdata, **kwargs)
