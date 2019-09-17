@@ -23,7 +23,8 @@ def fit(x, y, t, **kwargs):
     full_x, full_y, full_t = x, y, t
     for idx in range(ext_params['max_round']):
         ext_idx_list = []
-        kwargs.update({'u_value': ext_params['u_list'][idx], 'ext_idx_list': ext_idx_list})
+        u_value = ext_params['u_list'][idx]
+        kwargs.update({'u_value': u_value, 'ext_idx_list': ext_idx_list})
         if idx == ext_params['max_round'] - 1:
             fit_list.append(model_dt.fit(full_x, full_y, full_t, **kwargs))
         else:
@@ -33,7 +34,7 @@ def fit(x, y, t, **kwargs):
             t = t.drop(ext_idx_list)
             rest -= len(ext_idx_list)
 
-        print('Round, rest, number of extraction:', idx, rest, len(ext_idx_list))
+        print('Train) Round, u value, rest, number of extraction:', idx, u_value, rest, len(ext_idx_list))
 
     return fit_list
 
@@ -58,8 +59,11 @@ def predict(obj, newdata, **kwargs):
                 meet[prev_meet] = False
             final_pred[meet] = pred[meet]
 
-        print('Round, rest, meet count:', idx, rest, meet.sum())
         meet_list.append(meet)
-        rest -= meet.sum()
+        if idx == ext_params['max_round'] - 1:
+            rest = 0
+        else:
+            rest -= meet.sum()
+        print('Prediction) Round, u value, rest, meet count:', idx, u_value, rest, meet.sum())
 
     return final_pred
