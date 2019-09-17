@@ -67,9 +67,9 @@ def fit(x, y, t, method=LogisticRegression, **kwargs):
             t = t.drop(ext_idx_list).reset_index(drop=True)
 
             fit_list.append((model_treat, model_control))
+            rest -= len(ext_idx_list)
 
         print('Round, rest, number of extraction:', idx, rest, len(ext_idx_list))
-        rest -= len(ext_idx_list)
 
     return fit_list
 
@@ -99,9 +99,12 @@ def predict(obj, newdata, **kwargs):
             final_pred_treat[meet] = pred_treat[meet]
             final_pred_control[meet] = pred_control[meet]
 
-        print('Round, rest, meet count:', idx, rest, meet.sum())
         meet_list.append(meet)
-        rest -= meet.sum()
+        if idx == ext_params['max_round'] - 1:
+            rest = 0
+        else:
+            rest -= meet.sum()
+        print('Round, rest, meet count:', idx, rest, meet.sum())
 
     return {
         'pr_y1_t1': final_pred_treat,
