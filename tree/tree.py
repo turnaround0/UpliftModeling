@@ -262,6 +262,15 @@ def build_tree(df, cols, predict_attr='Y', treatment_attr='T',
             if uplift > u_value:
                 ext_idx_list += df.index.tolist()
 
+        # Tree extraction method 2
+        p_value = kwargs.get('p_value')
+        if p_value is not None:
+            ext_idx_list = kwargs['ext_idx_list']
+            diff_tr = np.abs(0.5 - leaf.predict[0])
+            diff_cr = np.abs(0.5 - leaf.predict[1])
+            if diff_tr >= p_value or diff_cr >= p_value:
+                ext_idx_list += df.index.tolist()
+
         return leaf
     else:
         # Create internal tree node based on attribute and it's threshold
