@@ -33,8 +33,6 @@ def fit(x, y, t, **kwargs):
 
 def predict(obj, newdata, **kwargs):
     kwargs.update({'method': 'ed'})
-
-    u_value = ext_params['u_value']
-    all_fit, select_fit = obj
+    _, select_fit = obj
 
     return model_dt.predict(select_fit, newdata, **kwargs)
