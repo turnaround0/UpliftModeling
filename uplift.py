@@ -17,7 +17,27 @@ seed = 1234
 n_fold = 5
 p_test = 0.33
 n_niv_params = 50
-repeat_num = 0  # For small dataset with regression
+
+
+def set_model_specific_params(config_set, dataset_name, model, model_name, T_train, Y_train):
+    if model_name.endswith('_ext'):
+        max_round = config_set.get_option('max_round', dataset_name, model_name)
+        u_list = config_set.get_option('u_list', dataset_name, model_name)
+        train_uplift = get_uplift(dataset_name, T_train, Y_train)
+        print('Train uplift:', train_uplift)
+        model.set_params(max_round, u_list, train_uplift)
+    elif model_name.endswith('_focus'):
+        u_value = config_set.get_option('u_value', dataset_name, model_name)
+        train_uplift = get_uplift(dataset_name, T_train, Y_train)
+        print('Train uplift:', train_uplift)
+        model.set_params(u_value, train_uplift)
+    elif model_name.endswith('_ext2'):
+        max_round = config_set.get_option('max_round', dataset_name, model_name)
+        p_list = config_set.get_option('p_list', dataset_name, model_name)
+        model.set_params(max_round, p_list)
+    elif model_name.endswith('_focus2'):
+        p_value = config_set.get_option('p_value', dataset_name, model_name)
+        model.set_params(p_value)
 
 
 def main():
@@ -76,17 +96,7 @@ def main():
 
                 X_test, X_train, T_test, T_train, Y_test, Y_train = data_reindex(train_index, test_index, X, T, Y)
 
-                if model_name.endswith('_ext'):
-                    max_round = config_set.get_option('max_round', dataset_name, model_name)
-                    u_list = config_set.get_option('u_list', dataset_name, model_name)
-                    train_uplift = get_uplift(dataset_name, T_train, Y_train)
-                    print('Train uplift:', train_uplift)
-                    model.set_params(max_round, u_list, train_uplift)
-                elif model_name.endswith('_focus'):
-                    u_value = config_set.get_option('u_value', dataset_name, model_name)
-                    train_uplift = get_uplift(dataset_name, T_train, Y_train)
-                    print('Train uplift:', train_uplift)
-                    model.set_params(u_value, train_uplift)
+                set_model_specific_params(config_set, dataset_name, model, model_name, T_train, Y_train)
 
                 if config_set.is_enable('niv') and X_train.shape[1] > n_niv_params:
                     if idx >= len(niv_results):
