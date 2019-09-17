@@ -1,6 +1,6 @@
 # UpliftModeling
 ## Environment
-This program was tested on Anaconda3 environment.<br>
+This program was tested on Anaconda3 / python 3.7 environment.<br>
 Please install required python libraries.
 ``` console
 $ pip install -r requirements.txt
