@@ -4,12 +4,11 @@ from models import model_dt
 ext_params = {}
 
 
-def set_params(p_value, max_y, avg_value):
+def set_params(p_value):
     global ext_params
 
     ext_params = {
-        'p_value': max_y * np.array(p_value),
-        'avg_value': avg_value if max_y != 1 else 0.5,
+        'p_value': p_value,
     }
     print('Extraction params:', ext_params)
 
@@ -18,8 +17,7 @@ def fit(x, y, t, **kwargs):
     kwargs.update({'method': 'ed'})
 
     train_idx_list = []
-    kwargs.update({'p_value': ext_params['p_value'], 'ext_idx_list': train_idx_list,
-                   'avg_value': ext_params['avg_value']})
+    kwargs.update({'p_value': ext_params['p_value'], 'ext_idx_list': train_idx_list})
     all_fit = model_dt.fit(x, y, t, **kwargs)
 
     print('Number of check samples:', len(train_idx_list), '/', len(t))
