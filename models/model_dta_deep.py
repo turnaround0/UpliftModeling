@@ -1,4 +1,5 @@
 import pandas as pd
+import tensorflow as tf
 from tensorflow import keras
 
 
@@ -47,6 +48,8 @@ def build_model(x_len):
 
 
 def fit(x, y, t, **kwargs):
+    tf.compat.v1.set_random_seed(1234)
+
     df = x.copy()
     for col_name in x.columns:
         df["Int_" + col_name] = x[col_name] * t
