@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from tensorflow import keras
+from tensorflow import keras, set_random_seed
 
 from tree.tree import num_class
 
@@ -123,6 +123,9 @@ def over_sampling(X, T, Y):
     batch_size = 64
     epochs = 2
     latent_dim = 128
+    seed = 1234
+
+    set_random_seed(seed)
 
     binary_list = []
     multi_list = []
@@ -134,6 +137,9 @@ def over_sampling(X, T, Y):
             multi_list.append(col)
 
     # Normalization for non-binary columns
+    X = X.copy()
+    T = T.copy()
+    Y = Y.copy()
     backup_X = X.copy()
     backup_Y = Y.copy()
     backup_T = T.copy()
@@ -206,6 +212,9 @@ def over_sampling2(X, T, Y):
     epochs = 2
     latent_dim = 128
     num_fake_data = len(X) * 5
+    seed = 1234
+
+    set_random_seed(seed)
 
     binary_list = []
     multi_list = []
@@ -220,6 +229,9 @@ def over_sampling2(X, T, Y):
     binary_list.append('Y')
 
     # Normalization for non-binary columns
+    X = X.copy()
+    T = T.copy()
+    Y = Y.copy()
     backup_X = X.copy()
     backup_Y = Y.copy()
     backup_T = T.copy()

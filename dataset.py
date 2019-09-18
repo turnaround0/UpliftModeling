@@ -44,11 +44,11 @@ def create_fold(n_fold, seed, dataset_name, X, ty):
 
 
 def data_reindex(train_index, test_index, X, T, Y):
-    X_train = X.reindex(train_index)
-    X_test = X.reindex(test_index)
-    Y_train = Y.reindex(train_index)
-    Y_test = Y.reindex(test_index)
-    T_train = T.reindex(train_index)
-    T_test = T.reindex(test_index)
+    X_train = X.copy().reindex(train_index)
+    X_test = X.copy().reindex(test_index)
+    Y_train = Y.copy().reindex(train_index)
+    Y_test = Y.copy().reindex(test_index)
+    T_train = T.copy().reindex(train_index)
+    T_test = T.copy().reindex(test_index)
 
     return X_test, X_train, T_test, T_train, Y_test, Y_train

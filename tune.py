@@ -333,7 +333,7 @@ def do_niv_variable_selection(X_test, X_train, T_train, Y_train, n_niv_params):
     niv_end_time = time.time()
     print('NIV time:', niv_end_time - niv_start_time)
 
-    return X_test, X_train
+    return survived_vars, X_test, X_train
 
 
 def do_find_best_mlai_params(model, model_params, mlai_params, data_dict):

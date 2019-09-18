@@ -100,10 +100,13 @@ def main():
 
                 if config_set.is_enable('niv') and X_train.shape[1] > n_niv_params:
                     if idx >= len(niv_results):
-                        X_test, X_train = do_niv_variable_selection(X_test, X_train, T_train, Y_train, n_niv_params)
-                        niv_results.append((X_test, X_train))
+                        survived_vars, X_test, X_train = \
+                            do_niv_variable_selection(X_test, X_train, T_train, Y_train, n_niv_params)
+                        niv_results.append(survived_vars)
                     else:
-                        X_test, X_train = niv_results[idx]
+                        survived_vars = niv_results[idx]
+                        X_test = X_test[survived_vars]
+                        X_train = X_train[survived_vars]
 
                 over_sampling = config_set.get_option('over_sampling', dataset_name, model_name)
                 if over_sampling:
