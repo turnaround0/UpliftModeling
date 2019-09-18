@@ -149,6 +149,10 @@ def over_sampling(X, T, Y):
     pair_class_list = [(1, 1), (1, 0), (0, 1), (0, 0)]
     num_max_class = max(list_num_class)
 
+    generated_X_list = []
+    generated_T_list = []
+    generated_Y_list = []
+
     for idx in range(len(list_num_class)):
         num_add = num_max_class - list_num_class[idx]
         if num_add == 0:
@@ -180,11 +184,17 @@ def over_sampling(X, T, Y):
             generated_df.loc[generated_df[col] >= 0.5, col] = 1
             generated_df.loc[generated_df[col] < 0.5, col] = 0
 
-        backup_X = pd.concat([backup_X, generated_df])
-        backup_T = pd.concat([backup_T, pd.Series([t] * num_add)])
-        backup_Y = pd.concat([backup_Y, pd.Series([y] * num_add)])
+        # Append generated dataframe
+        generated_X_list.append(generated_df)
+        generated_T_list.append(pd.Series([t] * num_add, name='T'))
+        generated_Y_list.append(pd.Series([y] * num_add, name='Y'))
 
-    return backup_X, backup_T, backup_Y
+    # Combine original and generated data
+    X = pd.concat([backup_X] + generated_X_list)
+    T = pd.concat([backup_T] + generated_T_list)
+    Y = pd.concat([backup_Y] + generated_Y_list)
+
+    return X, T, Y
 
 
 # Make fake data with x5
