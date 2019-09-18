@@ -184,7 +184,7 @@ def over_sampling(X, T, Y):
         backup_T = pd.concat([backup_T, pd.Series([t] * num_add)])
         backup_Y = pd.concat([backup_Y, pd.Series([y] * num_add)])
 
-    return X, T, Y
+    return backup_X, backup_T, backup_Y
 
 
 # Make fake data with x5
