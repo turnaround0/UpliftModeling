@@ -125,3 +125,6 @@ dmypy.json
 
 # PyCharm
 .idea/
+
+# Output files
+output/*.json
