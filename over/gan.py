@@ -122,7 +122,7 @@ def over_sampling(X, T, Y):
     learning_rate = 0.00001
     beta1 = 0.5
     batch_size = 64
-    epochs = 20
+    epochs = 50
     latent_dim = 128
     tf.compat.v1.set_random_seed(1234)
 
@@ -208,7 +208,7 @@ def over_sampling2(X, T, Y):
     learning_rate = 0.000003
     beta1 = 0.5
     batch_size = 64
-    epochs = 20
+    epochs = 50
     latent_dim = 128
     num_fake_data = len(X) * 5
     tf.compat.v1.set_random_seed(1234)
