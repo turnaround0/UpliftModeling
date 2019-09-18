@@ -119,10 +119,10 @@ def train(df, epochs, batch_size, latent_dim, generator, discriminator, combined
 # Make fake data for balance among TR, TN, CR, CN
 def over_sampling(X, T, Y):
     # Hyper-parameters
-    learning_rate = 0.0001
+    learning_rate = 0.00001
     beta1 = 0.5
     batch_size = 64
-    epochs = 2
+    epochs = 20
     latent_dim = 128
     tf.compat.v1.set_random_seed(1234)
 
@@ -205,10 +205,10 @@ def over_sampling(X, T, Y):
 # Make fake data with x5
 def over_sampling2(X, T, Y):
     # Hyper-parameters
-    learning_rate = 0.00001
+    learning_rate = 0.000003
     beta1 = 0.5
     batch_size = 64
-    epochs = 2
+    epochs = 20
     latent_dim = 128
     num_fake_data = len(X) * 5
     tf.compat.v1.set_random_seed(1234)
