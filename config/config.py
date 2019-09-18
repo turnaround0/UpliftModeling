@@ -1,8 +1,7 @@
-from config import test_all, test, over, mlai, ext, focus, deep, ext2, focus2
+from config import test_all, over, mlai, ext, focus, deep, ext2, focus2
 
 config_set = {
     'test_all': test_all.config,
-    'test': test.config,
     'over': over.config,
     'mlai': mlai.config,
     'ext': ext.config,
