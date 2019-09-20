@@ -124,17 +124,29 @@ def main():
                 else:
                     best_params = config_set.get_default_params(dataset_name, model_name)
 
-                print('Params:', best_params)
+                mlai_params = config_set.get_option('mlai_values', dataset_name, model_name)
+                # if mlai_params:
+                #     pred = predict(mdl, X_test, t=T_test, alpha=alpha, beta=beta)
+                # else:
+                #     # Train model and predict outcomes
+                class_weight = config_set.get_option('class_weight', dataset_name, model_name)
+                print(class_weight)
+                if class_weight == 'calculate':
+                    alpha, beta = do_find_best_mlai_params(model, best_params, mlai_params, data_dict)
+                    best_params.update({'class_weight': {'CN': alpha, 'CR': 1, 'TN': beta, 'TR': 1}})
+                else:
+                    best_params.update({'class_weight': class_weight})
 
+                print('Params:', best_params)
                 # Train model and predict outcomes
                 mdl = fit(X_train, Y_train, T_train, **best_params)
 
-                mlai_params = config_set.get_option('mlai_values', dataset_name, model_name)
-                if mlai_params:
-                    alpha, beta = do_find_best_mlai_params(model, best_params, mlai_params, data_dict)
-                    pred = predict(mdl, X_test, t=T_test, alpha=alpha, beta=beta)
-                else:
-                    pred = predict(mdl, X_test, t=T_test)
+                # mlai_params = config_set.get_option('mlai_values', dataset_name, model_name)
+                # if mlai_params:
+                #     alpha, beta = do_find_best_mlai_params(model, best_params, mlai_params, data_dict)
+                #     pred = predict(mdl, X_test, t=T_test, alpha=alpha, beta=beta)
+                # else:
+                pred = predict(mdl, X_test, t=T_test)
 
                 # Perform to check performance with Qini curve
                 perf = performance(pred['pr_y1_t1'], pred['pr_y1_t0'], Y_test, T_test)
