@@ -24,15 +24,15 @@ config = {
     'dataset': {
         'hillstrom': {
             'dt_ed': {'model': model_dt_ed, 'params': params_tree_hillstrom},
-            'dt_ed_focus': {'model': model_dt_ed_focus, 'params': params_tree_hillstrom, 'u_value': -1.0},
+            'dt_ed_focus': {'model': model_dt_ed_focus, 'params': params_tree_hillstrom, 'p_value': 0.8},
         },
         'lalonde': {
             'dt_ed': {'model': model_dt_ed, 'params': params_tree_lalonde},
-            'dt_ed_focus': {'model': model_dt_ed_focus, 'params': params_tree_lalonde, 'u_value': -1.0},
+            'dt_ed_focus': {'model': model_dt_ed_focus, 'params': params_tree_lalonde, 'p_value': 0.8},
         },
         'criteo': {
             'dt_ed': {'model': model_dt_ed, 'params': params_tree_criteo},
-            'dt_ed_focus': {'model': model_dt_ed_focus, 'params': params_tree_criteo, 'u_value': -1.0},
+            'dt_ed_focus': {'model': model_dt_ed_focus, 'params': params_tree_criteo, 'p_value': 0.8},
         },
     },
     'wrapper': False,

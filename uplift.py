@@ -7,7 +7,7 @@ from config.config import ConfigSet
 from dataset.dataset import load_data, create_fold, data_reindex
 from dataset.preprocess import preprocess_data, assign_data
 from utils.utils import save_json
-from utils.helper import print_overview, plot_data, get_uplift
+from utils.helper import print_overview, plot_data
 from tune.tune import do_general_wrapper_approach, do_tuning_parameters, get_tuning_data_dict, do_niv
 from experiment.measure import performance, qini
 from experiment.plot import plot_table6
@@ -19,21 +19,12 @@ p_test = 0.33
 n_niv_params = 50
 
 
-def set_model_specific_params(config_set, dataset_name, model, model_name, T_train, Y_train):
+def set_model_specific_params(config_set, dataset_name, model, model_name):
     if model_name.endswith('_ext'):
         max_round = config_set.get_option('max_round', dataset_name, model_name)
         p_value = config_set.get_option('p_value', dataset_name, model_name)
         model.set_params(max_round, p_value)
     elif model_name.endswith('_focus'):
-        u_value = config_set.get_option('u_value', dataset_name, model_name)
-        train_uplift = get_uplift(dataset_name, T_train, Y_train)
-        print('Train uplift:', train_uplift)
-        model.set_params(u_value, train_uplift)
-    elif model_name.endswith('_ext2'):
-        max_round = config_set.get_option('max_round', dataset_name, model_name)
-        p_list = config_set.get_option('p_list', dataset_name, model_name)
-        model.set_params(max_round, p_list)
-    elif model_name.endswith('_focus2'):
         p_value = config_set.get_option('p_value', dataset_name, model_name)
         model.set_params(p_value)
     elif 'mlai' in model_name:
@@ -97,7 +88,7 @@ def main():
 
                 X_test, X_train, T_test, T_train, Y_test, Y_train = data_reindex(train_index, test_index, X, T, Y)
 
-                set_model_specific_params(config_set, dataset_name, model, model_name, T_train, Y_train)
+                set_model_specific_params(config_set, dataset_name, model, model_name)
 
                 if config_set.is_enable('niv') and X_train.shape[1] > n_niv_params:
                     X_test, X_train = do_niv(X_test, X_train, T_train, Y_train, n_niv_params, dataset_name, idx)
