@@ -25,17 +25,17 @@ config = {
         'hillstrom': {
             'dt_ed': {'model': model_dt_ed, 'params': params_tree_hillstrom},
             'dt_ed_ext': {'model': model_dt_ed_ext, 'params': params_tree_hillstrom,
-                          'max_round': 4, 'p_list': [0.15, 0.15, 0.15, 1]},
+                          'max_round': 4, 'p_value': 0.2},
         },
         'lalonde': {
             'dt_ed': {'model': model_dt_ed, 'params': params_tree_lalonde},
             'dt_ed_ext': {'model': model_dt_ed_ext, 'params': params_tree_lalonde,
-                          'max_round': 4, 'p_list': [0.15, 0.15, 0.15, 1]},
+                          'max_round': 4, 'p_value': 0.1},
         },
         'criteo': {
             'dt_ed': {'model': model_dt_ed, 'params': params_tree_criteo},
             'dt_ed_ext': {'model': model_dt_ed_ext, 'params': params_tree_criteo,
-                          'max_round': 4, 'p_list': [0.15, 0.15, 0.15, 1]},
+                          'max_round': 4, 'p_value': 0.1},
         },
     },
     'wrapper': False,

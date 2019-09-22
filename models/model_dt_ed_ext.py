@@ -5,12 +5,12 @@ from models import model_dt
 ext_params = {}
 
 
-def set_params(max_round, p_list):
+def set_params(max_round, p_value):
     global ext_params
 
     ext_params = {
         'max_round': max_round,
-        'p_list': np.array(p_list),
+        'p_value': p_value,
         'u_list': [],
     }
     print('Extraction params:', ext_params)
@@ -24,7 +24,7 @@ def fit(x, y, t, **kwargs):
     full_x, full_y, full_t = x, y, t
     for idx in range(ext_params['max_round']):
         ext_list = []
-        p_value = ext_params['p_list'][idx]
+        p_value = ext_params['p_value']
         kwargs.update({'ext_list': ext_list})
 
         if idx == ext_params['max_round'] - 1:
