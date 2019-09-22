@@ -2,19 +2,20 @@ from models import model_dta_deep
 
 config = {
     'dataset': {
-        #'hillstrom': {
-        #    'dta': {},
-        #    'dta_deep': {'model': model_dta_deep, 'params': {'method': 'logistic'}},
-        #},
+        'hillstrom': {
+            'dta': {},
+            'dta_deep': {'model': model_dta_deep,
+                         'params': {'method': 'logistic', 'lr': 1e-5, 'epochs': 200, 'batch_size': 64}},
+        },
         'lalonde': {
              'dta': {},
              'dta_deep': {'model': model_dta_deep,
-                          'params': {'method': 'linear', 'lr': 1e-4, 'epochs': 1000, 'batch_size': 64}},
+                          'params': {'method': 'linear', 'lr': 1e-3, 'epochs': 500, 'batch_size': 64}},
         },
         'criteo': {
             'dta': {},
             'dta_deep': {'model': model_dta_deep,
-                         'params': {'method': 'logistic', 'lr': 1e-5, 'epochs': 1000, 'batch_size': 64}},
+                         'params': {'method': 'logistic', 'lr': 1e-5, 'epochs': 500, 'batch_size': 64}},
         },
     },
     'wrapper': False,
