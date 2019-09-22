@@ -1,4 +1,5 @@
 import json
+from os import path
 
 
 def num_class(df, predict_attr, treatment_attr):
@@ -18,9 +19,14 @@ def save_json(name, data):
 
 
 def load_json(name):
-    with open('output/' + name + '.json', 'r') as f:
-        print('Open success')
-        return json.load(f)
+    filename = 'output/' + name + '.json'
+    if path.exists(filename):
+        with open(filename, 'r') as f:
+            print('Open success:', filename)
+            return json.load(f)
+    else:
+        print('Not exist', filename)
+        return None
 
 
 def ty_assign(y, t):

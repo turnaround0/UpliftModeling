@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 from tune.niv import niv_variable_selection
 from tune.param import parameter_tuning
 from tune.wrapper import wrapper
+from utils.utils import load_json, save_json
 
 
 def get_tuning_data_dict(X_train, Y_train, T_train, dataset_name, p_test, seed):
@@ -92,17 +93,34 @@ def do_tuning_parameters(model, search_space, data_dict):
     return best_params
 
 
-def do_niv_variable_selection(X_test, X_train, T_train, Y_train, n_niv_params):
-    niv_start_time = time.time()
-    print('Start NIV variable selection')
+def do_niv(X_test, X_train, T_train, Y_train, n_niv_params, dataset_name, fold_idx):
+    niv_filename = 'niv_' + dataset_name
+    fold_name = 'fold' + str(fold_idx + 1)
+    niv_vars = load_json(niv_filename)
+    survived_vars = niv_vars.get(fold_name) if niv_vars else None
 
-    survived_vars = niv_variable_selection(X_train, Y_train, T_train, n_niv_params)
-    print('NIV:', list(survived_vars))
+    if survived_vars:
+        print('Stored NIV:', survived_vars)
+        X_test = X_test[survived_vars]
+        X_train = X_train[survived_vars]
+    else:
+        niv_start_time = time.time()
+        print('Start NIV variable selection')
 
-    X_train = X_train[survived_vars]
-    X_test = X_test[survived_vars]
+        survived_vars = niv_variable_selection(X_train, Y_train, T_train, n_niv_params)
+        print('NIV:', list(survived_vars))
 
-    niv_end_time = time.time()
-    print('NIV time:', niv_end_time - niv_start_time)
+        X_train = X_train[survived_vars]
+        X_test = X_test[survived_vars]
 
-    return survived_vars, X_test, X_train
+        niv_end_time = time.time()
+        print('NIV time:', niv_end_time - niv_start_time)
+
+        if niv_vars:
+            niv_vars.update({fold_name: survived_vars.tolist()})
+        else:
+            niv_vars = {fold_name: survived_vars.tolist()}
+        save_json(niv_filename, niv_vars)
+
+    return X_test, X_train
+

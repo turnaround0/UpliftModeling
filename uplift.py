@@ -8,8 +8,7 @@ from dataset.dataset import load_data, create_fold, data_reindex
 from dataset.preprocess import preprocess_data, assign_data
 from utils.utils import save_json
 from utils.helper import print_overview, plot_data, get_uplift
-from tune.tune import do_general_wrapper_approach, do_tuning_parameters, do_niv_variable_selection,\
-    get_tuning_data_dict
+from tune.tune import do_general_wrapper_approach, do_tuning_parameters, get_tuning_data_dict, do_niv
 from experiment.measure import performance, qini
 from experiment.plot import plot_table6
 
@@ -103,14 +102,7 @@ def main():
                 set_model_specific_params(config_set, dataset_name, model, model_name, T_train, Y_train)
 
                 if config_set.is_enable('niv') and X_train.shape[1] > n_niv_params:
-                    if idx >= len(niv_results):
-                        survived_vars, X_test, X_train = \
-                            do_niv_variable_selection(X_test, X_train, T_train, Y_train, n_niv_params)
-                        niv_results.append(survived_vars)
-                    else:
-                        survived_vars = niv_results[idx]
-                        X_test = X_test[survived_vars]
-                        X_train = X_train[survived_vars]
+                    X_test, X_train = do_niv(X_test, X_train, T_train, Y_train, n_niv_params, dataset_name, idx)
 
                 over_sampling = config_set.get_option('over_sampling', dataset_name, model_name)
                 if over_sampling:
@@ -127,16 +119,10 @@ def main():
                     best_params = do_tuning_parameters(model, search_space, data_dict)
                 else:
                     best_params = config_set.get_default_params(dataset_name, model_name)
-
                 print('Params:', best_params)
+
                 # Train model and predict outcomes
                 mdl = fit(X_train, Y_train, T_train, **best_params)
-
-                # mlai_params = config_set.get_option('mlai_values', dataset_name, model_name)
-                # if mlai_params:
-                #     alpha, beta = do_find_best_mlai_params(model, best_params, mlai_params, data_dict)
-                #     pred = predict(mdl, X_test, t=T_test, alpha=alpha, beta=beta)
-                # else:
                 pred = predict(mdl, X_test, t=T_test)
 
                 # Perform to check performance with Qini curve
