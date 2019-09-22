@@ -6,6 +6,11 @@ def niv_variable_selection(x, y, t, max_vars):
     """
     NIV variable selection procedure
 
+    WOEi = ln(P(X=i|Y=1) / P(X=i|Y=0))
+    IV = sum(((P(X=i|Y=1) - P(X=1|Y=0)) x WOEi)
+    NWOE = WOEt - WOEc
+    NIV = 100 x sum((P(X=i|Y=1)tP(X=i|/Y=0)c - P(X=i|Y=0)tP(X=i|Y=1)c) x NWOEi)
+
     Args:
         x: predictor variables of training dataset,
         y: target variables of training dataset,

@@ -9,7 +9,7 @@ from dataset.preprocess import preprocess_data, assign_data
 from utils.utils import save_json
 from utils.helper import print_overview, plot_data, get_uplift
 from tune.tune import do_general_wrapper_approach, do_tuning_parameters, do_niv_variable_selection,\
-    get_tuning_data_dict, do_find_best_mlai_params
+    get_tuning_data_dict
 from experiment.measure import performance, qini
 from experiment.plot import plot_table6
 
@@ -39,6 +39,9 @@ def set_model_specific_params(config_set, dataset_name, model, model_name, T_tra
     elif model_name.endswith('_focus2'):
         p_value = config_set.get_option('p_value', dataset_name, model_name)
         model.set_params(p_value)
+    elif 'mlai' in model_name:
+        class_weight = config_set.get_option('class_weight', dataset_name, model_name)
+        model.set_params(class_weight)
 
 
 def main():
@@ -124,19 +127,6 @@ def main():
                     best_params = do_tuning_parameters(model, search_space, data_dict)
                 else:
                     best_params = config_set.get_default_params(dataset_name, model_name)
-
-                mlai_params = config_set.get_option('mlai_values', dataset_name, model_name)
-                # if mlai_params:
-                #     pred = predict(mdl, X_test, t=T_test, alpha=alpha, beta=beta)
-                # else:
-                #     # Train model and predict outcomes
-                class_weight = config_set.get_option('class_weight', dataset_name, model_name)
-                print(class_weight)
-                if class_weight == 'calculate':
-                    alpha, beta = do_find_best_mlai_params(model, best_params, mlai_params, data_dict)
-                    best_params.update({'class_weight': {'CN': alpha, 'CR': 1, 'TN': beta, 'TR': 1}})
-                else:
-                    best_params.update({'class_weight': class_weight})
 
                 print('Params:', best_params)
                 # Train model and predict outcomes
