@@ -3,7 +3,7 @@ import pandas as pd
 import tensorflow as tf
 from tensorflow import keras
 
-from tree.tree import num_class
+from utils.utils import num_class
 
 
 def build_generator(data_dim, latent_dim):

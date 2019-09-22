@@ -6,7 +6,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 
 from measure import performance, qini
-from tree.tree import num_class
+from utils.utils import num_class
 
 calc_mlai = True
 
