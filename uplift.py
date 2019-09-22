@@ -7,7 +7,7 @@ from config.config import ConfigSet
 from dataset import load_data, save_json, create_fold, data_reindex
 from helper import print_overview, plot_data, get_uplift
 from preprocess import preprocess_data, assign_data
-from tune import do_general_wrapper_approach, do_tuning_parameters, do_niv_variable_selection,\
+from tune.tune import do_general_wrapper_approach, do_tuning_parameters, do_niv_variable_selection,\
     get_tuning_data_dict, do_find_best_mlai_params
 from measure import performance, qini
 from plot import plot_table6
