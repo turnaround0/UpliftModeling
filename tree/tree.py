@@ -252,15 +252,6 @@ def build_tree(df, cols, predict_attr='Y', treatment_attr='T',
             abs_uplift = np.abs(leaf.predict[0] - leaf.predict[1])
             ext_list.append({'abs_uplift': abs_uplift, 'idx_list': df.index.tolist(), 'n_samples': len(df)})
 
-        # Tree extraction method 2
-        p_value = kwargs.get('p_value')
-        if p_value is not None:
-            ext_idx_list = kwargs['ext_idx_list']
-            diff_tr = np.abs(0.5 - leaf.predict[0])
-            diff_cr = np.abs(0.5 - leaf.predict[1])
-            if diff_tr >= p_value or diff_cr >= p_value:
-                ext_idx_list += df.index.tolist()
-
         return leaf
     else:
         # Create internal tree node based on attribute and it's threshold
