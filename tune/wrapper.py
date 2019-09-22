@@ -1,4 +1,4 @@
-from measure import performance, qini
+from experiment.measure import performance, qini
 
 
 def wrapper(fit_mdl, pred_mdl, data, params=None,

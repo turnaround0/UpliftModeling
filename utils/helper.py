@@ -1,7 +1,7 @@
 import pandas as pd
 
-from dataset import load_json
-from plot import plot_all
+from utils.utils import load_json, ty_assign
+from experiment.plot import plot_all
 
 
 def print_overview(dataset_name, df, T, Y, ty):
@@ -21,19 +21,6 @@ def print_overview(dataset_name, df, T, Y, ty):
         print(count)
         uplift = count['TR'] / (count['TR'] + count['TN']) - count['CR'] / (count['CR'] + count['CN'])
         print('Uplift:', uplift)
-
-
-def ty_assign(y, t):
-    if y == 1 and t == 1:
-        return "TR"
-    elif y == 0 and t == 1:
-        return "TN"
-    elif y == 1 and t == 0:
-        return "CR"
-    elif y == 0 and t == 0:
-        return "CN"
-    else:
-        return None
 
 
 def get_uplift(dataset_name, T, Y):

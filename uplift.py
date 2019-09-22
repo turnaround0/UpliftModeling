@@ -4,13 +4,14 @@ import time
 import argparse
 
 from config.config import ConfigSet
-from dataset import load_data, save_json, create_fold, data_reindex
-from helper import print_overview, plot_data, get_uplift
-from preprocess import preprocess_data, assign_data
+from dataset.dataset import load_data, create_fold, data_reindex
+from dataset.preprocess import preprocess_data, assign_data
+from utils.utils import save_json
+from utils.helper import print_overview, plot_data, get_uplift
 from tune.tune import do_general_wrapper_approach, do_tuning_parameters, do_niv_variable_selection,\
     get_tuning_data_dict, do_find_best_mlai_params
-from measure import performance, qini
-from plot import plot_table6
+from experiment.measure import performance, qini
+from experiment.plot import plot_table6
 
 # Parameters
 seed = 1234

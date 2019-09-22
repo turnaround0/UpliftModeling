@@ -1,4 +1,3 @@
-import json
 import pandas as pd
 from sklearn.model_selection import StratifiedKFold, KFold
 
@@ -15,17 +14,6 @@ def load_data(dataset_name):
         return pd.read_csv('input/criteo_small_fix.csv')
     else:
         return None
-
-
-def save_json(name, data):
-    with open('output/' + name + '.json', 'w') as f:
-        json.dump(data, f)
-
-
-def load_json(name):
-    with open('output/' + name + '.json', 'r') as f:
-        print('Open success')
-        return json.load(f)
 
 
 def create_fold(n_fold, seed, dataset_name, X, ty):

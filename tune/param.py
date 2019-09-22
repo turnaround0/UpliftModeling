@@ -1,6 +1,6 @@
 import numpy as np
 
-from measure import performance, qini
+from experiment.measure import performance, qini
 
 
 def parameter_tuning(fit_mdl, pred_mdl, data, search_space, plotit=False):

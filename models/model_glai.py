@@ -1,6 +1,6 @@
 import pandas as pd
 from sklearn.ensemble import GradientBoostingClassifier
-from preprocess import ty_assign
+from dataset.preprocess import ty_assign
 
 
 def fit(x, y, t, method=GradientBoostingClassifier, **kwargs):

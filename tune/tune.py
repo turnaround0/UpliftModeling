@@ -4,7 +4,7 @@ import numpy as np
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 
-from measure import performance, qini
+from experiment.measure import performance, qini
 from tune.niv import niv_variable_selection
 from tune.param import parameter_tuning
 from tune.wrapper import wrapper
