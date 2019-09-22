@@ -127,4 +127,6 @@ dmypy.json
 .idea/
 
 # Output files
-output/*.json
+output/*_qini.json
+output/*_val_sel.json
+
