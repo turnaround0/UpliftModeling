@@ -242,12 +242,10 @@ def build_tree(df, cols, predict_attr='Y', treatment_attr='T',
                         sum(df[(df[treatment_attr] == 0)][predict_attr]) / (cr + cn))
 
         # Tree extraction method
-        u_value = kwargs.get('u_value')
-        if u_value is not None:
-            ext_idx_list = kwargs['ext_idx_list']
-            uplift = leaf.predict[0] - leaf.predict[1]
-            if uplift > u_value:
-                ext_idx_list += df.index.tolist()
+        ext_list = kwargs.get('ext_list')
+        if ext_list is not None:
+            abs_uplift = np.abs(leaf.predict[0] - leaf.predict[1])
+            ext_list.append({'abs_uplift': abs_uplift, 'idx_list': df.index.tolist(), 'n_samples': len(df)})
 
         return leaf
     else:

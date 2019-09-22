@@ -22,10 +22,8 @@ n_niv_params = 50
 def set_model_specific_params(config_set, dataset_name, model, model_name, T_train, Y_train):
     if model_name.endswith('_ext'):
         max_round = config_set.get_option('max_round', dataset_name, model_name)
-        u_list = config_set.get_option('u_list', dataset_name, model_name)
-        train_uplift = get_uplift(dataset_name, T_train, Y_train)
-        print('Train uplift:', train_uplift)
-        model.set_params(max_round, u_list, train_uplift)
+        p_list = config_set.get_option('p_list', dataset_name, model_name)
+        model.set_params(max_round, p_list)
     elif model_name.endswith('_focus'):
         u_value = config_set.get_option('u_value', dataset_name, model_name)
         train_uplift = get_uplift(dataset_name, T_train, Y_train)

@@ -1,6 +1,6 @@
 import numpy as np
 
-from models import model_tma_ext, model_dt_ed_ext, model_dt_ed
+from models import model_dt_ed_ext, model_dt_ed
 
 params_tree_hillstrom = {
     'max_depth': 10,
@@ -25,23 +25,17 @@ config = {
         'hillstrom': {
             'dt_ed': {'model': model_dt_ed, 'params': params_tree_hillstrom},
             'dt_ed_ext': {'model': model_dt_ed_ext, 'params': params_tree_hillstrom,
-                          'max_round': 4, 'u_list': [2.0, 1.0, 0.5, -float('INF')]},
-            'tma': {},
-            'tma_ext': {'model': model_tma_ext, 'max_round': 3, 'u_list': [1.0, 0.7, -float('INF')]},
+                          'max_round': 4, 'p_list': [0.15, 0.15, 0.15, 1]},
         },
         'lalonde': {
             'dt_ed': {'model': model_dt_ed, 'params': params_tree_lalonde},
             'dt_ed_ext': {'model': model_dt_ed_ext, 'params': params_tree_lalonde,
-                          'max_round': 6, 'u_list': [1.5, 1.0, 0.7, 0.5, 0.3, -float('INF')]},
-            'tma': {},
-            'tma_ext': {'model': model_tma_ext, 'max_round': 3, 'u_list': [1.0, 0.7, -float('INF')]},
+                          'max_round': 4, 'p_list': [0.15, 0.15, 0.15, 1]},
         },
         'criteo': {
             'dt_ed': {'model': model_dt_ed, 'params': params_tree_criteo},
             'dt_ed_ext': {'model': model_dt_ed_ext, 'params': params_tree_criteo,
-                          'max_round': 4, 'u_list': [2.0, 1.0, 0.5, -float('INF')]},
-            'tma': {},
-            'tma_ext': {'model': model_tma_ext, 'max_round': 3, 'u_list': [1.0, 0.7, -float('INF')]},
+                          'max_round': 4, 'p_list': [0.15, 0.15, 0.15, 1]},
         },
     },
     'wrapper': False,

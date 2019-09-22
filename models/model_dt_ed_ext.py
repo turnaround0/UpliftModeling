@@ -5,12 +5,13 @@ from models import model_dt
 ext_params = {}
 
 
-def set_params(max_round, u_list, final_uplift):
+def set_params(max_round, p_list):
     global ext_params
 
     ext_params = {
         'max_round': max_round,
-        'u_list': final_uplift + np.abs(final_uplift) * np.array(u_list),
+        'p_list': np.array(p_list),
+        'u_list': [],
     }
     print('Extraction params:', ext_params)
 
@@ -22,18 +23,30 @@ def fit(x, y, t, **kwargs):
 
     full_x, full_y, full_t = x, y, t
     for idx in range(ext_params['max_round']):
-        ext_idx_list = []
-        u_value = ext_params['u_list'][idx]
-        kwargs.update({'u_value': u_value, 'ext_idx_list': ext_idx_list})
+        ext_list = []
+        p_value = ext_params['p_list'][idx]
+        kwargs.update({'ext_list': ext_list})
+
         if idx == ext_params['max_round'] - 1:
             fit_list.append(model_dt.fit(full_x, full_y, full_t, **kwargs))
+            ext_idx_list = x.index.tolist()
+            u_value = 0
         else:
             fit_list.append(model_dt.fit(x, y, t, **kwargs))
+            df_ext = pd.DataFrame(ext_list).sort_values('abs_uplift', ascending=False)
+            df_ext['n_cumsum_samples'] = df_ext['n_samples'].cumsum()
+            cut_len = rest * p_value
+            cut_len_upper = df_ext[df_ext['n_cumsum_samples'] > cut_len]['n_cumsum_samples'].iloc[0]
+            df_cut_ext = df_ext[df_ext['n_cumsum_samples'] <= cut_len_upper]
+            u_value = df_cut_ext.iloc[-1]['abs_uplift']
+
+            ext_idx_list = df_cut_ext['idx_list'].sum()
             x = x.drop(ext_idx_list)
             y = y.drop(ext_idx_list)
             t = t.drop(ext_idx_list)
             rest -= len(ext_idx_list)
 
+        ext_params['u_list'].append(u_value)
         print('Train) Round, u value, rest, number of extraction:', idx, u_value, rest, len(ext_idx_list))
 
     return fit_list
@@ -48,7 +61,7 @@ def predict(obj, newdata, **kwargs):
     for idx, model_fit in enumerate(obj):
         u_value = ext_params['u_list'][idx]
         pred = model_dt.predict(model_fit, newdata, **kwargs)
-        meet = pd.Series(pred['pr_y1_t1'] - pred['pr_y1_t0'] > u_value)
+        meet = pd.Series(np.abs(pred['pr_y1_t1'] - pred['pr_y1_t0']) >= u_value)
 
         if idx == 0:
             final_pred = pred
