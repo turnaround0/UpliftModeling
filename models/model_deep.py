@@ -2,54 +2,9 @@ import pandas as pd
 import tensorflow as tf
 from tensorflow import keras
 from utils.utils import normalize, denormalize
+from deep.dnn import build_model
 
 normalize_vars = None
-
-
-def build_model(x_len, lr, activation):
-    model = keras.Sequential([
-        keras.layers.Dense(128, input_shape=(x_len,), kernel_initializer='he_normal'),
-        keras.layers.LeakyReLU(),
-
-        keras.layers.Dense(128, kernel_initializer='normal'),
-        keras.layers.LeakyReLU(),
-        keras.layers.BatchNormalization(),
-
-        keras.layers.Dense(64, kernel_initializer='normal'),
-        keras.layers.LeakyReLU(),
-        keras.layers.Dropout(0.2),
-
-        keras.layers.Dense(64, kernel_initializer='normal'),
-        keras.layers.LeakyReLU(),
-
-        keras.layers.Dense(64, kernel_initializer='normal'),
-        keras.layers.LeakyReLU(),
-        keras.layers.BatchNormalization(),
-
-        keras.layers.Dense(32, kernel_initializer='normal'),
-        keras.layers.LeakyReLU(),
-        keras.layers.Dropout(0.2),
-
-        keras.layers.Dense(32, kernel_initializer='normal'),
-        keras.layers.LeakyReLU(),
-
-        keras.layers.Dense(16, kernel_initializer='normal'),
-        keras.layers.LeakyReLU(),
-
-        keras.layers.Dense(8, kernel_initializer='normal'),
-        keras.layers.LeakyReLU(),
-
-        keras.layers.Dense(1, activation=activation, kernel_initializer='normal'),
-    ])
-
-    adam = keras.optimizers.Adam(lr=lr)
-    if activation == 'linear':
-        model.compile(optimizer=adam, loss='mean_squared_error', metrics=['mse'])
-    else:
-        model.compile(optimizer=adam, loss='binary_crossentropy', metrics=['accuracy'])
-    # model.summary()
-
-    return model
 
 
 def fit(x, y, t, **kwargs):
@@ -71,7 +26,7 @@ def fit(x, y, t, **kwargs):
     else:
         normalize_vars = None
 
-    model = build_model(df.shape[1], lr, activation)
+    model = build_model(df.shape[1], 1, lr, activation)
     model.fit(df, y, epochs=epochs, batch_size=batch_size, validation_split=0.2, verbose=2)
 
     return model
