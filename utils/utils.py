@@ -58,3 +58,34 @@ def y_assign(ty):
         return 0
     else:
         return None
+
+
+def normalize(input_df):
+    df = input_df.copy()
+    normalize_vars = {}
+
+    for col in df.columns:
+        count = df[col].drop_duplicates().count()
+        if count < 2:
+            continue
+
+        min_val = df[col].min()
+        max_val = df[col].max()
+        normalize_vars[col] = (min_val, max_val)
+        df[col] = (df[col] - min_val) / (max_val - min_val)
+
+    return df, normalize_vars
+
+
+def denormalize(input_df, normalize_vars):
+    df = input_df.copy()
+
+    for col in df.columns:
+        min_max = normalize_vars.get(col)
+        if min_max is None:
+            continue
+
+        min_val, max_val = min_max
+        df[col] = df[col] * (max_val - min_val) + min_val
+
+    return df
