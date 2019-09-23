@@ -11,7 +11,7 @@ def fit(x, y, t, **kwargs):
     batch_size = kwargs.get('batch_size')
     decay = kwargs.get('decay')
     method = kwargs.get('method')
-    activation = 'sigmoid' if method == 'logistic' else 'linear'
+    activation = 'sigmoid' if method == 'logistic' else 'relu'
 
     init_seed(1234)
 

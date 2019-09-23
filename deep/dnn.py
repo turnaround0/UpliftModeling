@@ -4,30 +4,14 @@ from tensorflow import keras
 
 def build_model(input_len, output_len, activation):
     return keras.Sequential([
-        keras.layers.Dense(128, input_shape=(input_len,), kernel_initializer='he_normal'),
-        keras.layers.LeakyReLU(),
-
-        keras.layers.Dense(128, kernel_initializer='he_normal'),
-        keras.layers.LeakyReLU(),
-
-        keras.layers.Dense(128, kernel_initializer='he_normal'),
-        keras.layers.LeakyReLU(),
-
-        keras.layers.Dense(64, kernel_initializer='he_normal'),
-        keras.layers.LeakyReLU(),
-
-        keras.layers.Dense(64, kernel_initializer='he_normal'),
-        keras.layers.LeakyReLU(),
-
-        keras.layers.Dense(64, kernel_initializer='he_normal'),
-        keras.layers.LeakyReLU(),
-
-        keras.layers.Dense(32, kernel_initializer='he_normal'),
-        keras.layers.LeakyReLU(),
-
-        keras.layers.Dense(32, kernel_initializer='he_normal'),
-        keras.layers.LeakyReLU(),
-
+        keras.layers.Dense(128, input_shape=(input_len,), kernel_initializer='he_normal', activation='relu'),
+        keras.layers.Dense(128, kernel_initializer='he_normal', activation='relu'),
+        keras.layers.Dense(128, kernel_initializer='he_normal', activation='relu'),
+        keras.layers.Dense(64, kernel_initializer='he_normal', activation='relu'),
+        keras.layers.Dense(64, kernel_initializer='he_normal', activation='relu'),
+        keras.layers.Dense(64, kernel_initializer='he_normal', activation='relu'),
+        keras.layers.Dense(32, kernel_initializer='he_normal', activation='relu'),
+        keras.layers.Dense(16, kernel_initializer='he_normal', activation='relu'),
         keras.layers.Dense(output_len, activation=activation, kernel_initializer='he_normal'),
     ])
 
