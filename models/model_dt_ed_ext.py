@@ -28,7 +28,10 @@ def fit(x, y, t, **kwargs):
         kwargs.update({'ext_list': ext_list})
 
         if idx == ext_params['max_round'] - 1:
-            fit_list.append(model_dt.fit(full_x, full_y, full_t, **kwargs))
+            if idx == 0:
+                fit_list.append(model_dt.fit(full_x, full_y, full_t, **kwargs))
+            else:
+                fit_list.append(fit_list[0])
             ext_idx_list = x.index.tolist()
             u_value = 0
         else:
