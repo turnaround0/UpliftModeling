@@ -5,15 +5,19 @@ from tensorflow import keras
 def build_generator(data_dim, latent_dim):
     model = keras.Sequential([
         keras.layers.Dense(64, input_dim=latent_dim, kernel_initializer='he_normal', activation='relu'),
+        keras.layers.BatchNormalization(),
         keras.layers.Dense(64, kernel_initializer='he_normal', activation='relu'),
         keras.layers.BatchNormalization(),
         keras.layers.Dense(64, kernel_initializer='he_normal', activation='relu'),
+        keras.layers.BatchNormalization(),
         keras.layers.Dense(32, kernel_initializer='he_normal', activation='relu'),
         keras.layers.BatchNormalization(),
         keras.layers.Dense(32, kernel_initializer='he_normal', activation='relu'),
+        keras.layers.BatchNormalization(),
         keras.layers.Dense(32, kernel_initializer='he_normal', activation='relu'),
         keras.layers.BatchNormalization(),
         keras.layers.Dense(16, kernel_initializer='he_normal', activation='relu'),
+        keras.layers.BatchNormalization(),
         keras.layers.Dense(16, kernel_initializer='he_normal', activation='relu'),
         keras.layers.Dense(data_dim, activation='sigmoid', kernel_initializer='he_normal'),
     ])
@@ -29,10 +33,9 @@ def build_discriminator(data_dim):
     model = keras.Sequential([
         keras.layers.Dense(64, input_dim=data_dim, kernel_initializer='he_normal', activation='relu'),
         keras.layers.Dense(64, kernel_initializer='he_normal', activation='relu'),
-        keras.layers.BatchNormalization(),
         keras.layers.Dense(64, kernel_initializer='he_normal', activation='relu'),
-        keras.layers.Dense(32, kernel_initializer='he_normal', activation='relu'),
         keras.layers.BatchNormalization(),
+        keras.layers.Dense(32, kernel_initializer='he_normal', activation='relu'),
         keras.layers.Dense(32, kernel_initializer='he_normal', activation='relu'),
         keras.layers.Dense(32, kernel_initializer='he_normal', activation='relu'),
         keras.layers.BatchNormalization(),

@@ -27,7 +27,6 @@ def over_sampling(X, T, Y, params_over):
     n_samples_list = pd.Series(num_class(df, 'Y', 'T'))
     target_samples = n_samples_list.max() * 2
     n_target_samples_list = target_samples - n_samples_list
-    print('n_target_samples_list:', n_target_samples_list)
 
     df, normalize_vars = normalize(df)
     data_dim = df.shape[1]
