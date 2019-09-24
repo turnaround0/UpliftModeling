@@ -1,29 +1,57 @@
 from sklearn.linear_model import LogisticRegression
 
-from over import simple, smote, gan
+from over import smote, gan
 
 params_logistic = {
     'method': LogisticRegression,
     'solver': 'newton-cg',
     'penalty': 'none',
 }
+params_gan_hillstrom = {
+    'gen_lr': 1e-4,
+    'dis_lr': 1e-5,
+    'batch_size': 256,
+    'epochs': 50,
+    'noise_size': 64,
+    'beta1': 0.5,
+}
+params_gan_lalonde = {
+    'gen_lr': 1e-4,
+    'dis_lr': 1e-5,
+    'batch_size': 64,
+    'epochs': 100,
+    'noise_size': 64,
+    'beta1': 0.5,
+}
+params_gan_criteo = {
+    'gen_lr': 1e-4,
+    'dis_lr': 1e-5,
+    'batch_size': 64,
+    'epochs': 100,
+    'noise_size': 64,
+    'beta1': 0.5,
+}
 
 config = {
     'dataset': {
         'hillstrom': {
-            'tma': {'params': params_logistic},
-            # 'tma_simple': {'over_sampling': simple.over_sampling, 'params': params_logistic},
-            'tma_smote': {'over_sampling': smote.over_sampling, 'params': params_logistic},
-            'tma_gan': {'over_sampling': gan.over_sampling, 'params': params_logistic},
-            'tma_gan2': {'over_sampling': gan.over_sampling2, 'params': params_logistic},
+            # 'dta': {'params': params_logistic},
+            # 'dta_smote': {'over_sampling': smote.over_sampling, 'params': params_logistic},
+            'dta_gan': {'over_sampling': gan.over_sampling, 'params': params_logistic,
+                        'params_over': params_gan_hillstrom},
         },
-        'criteo': {
-            'tma': {'params': params_logistic},
-            # 'tma_simple': {'over_sampling': simple.over_sampling, 'params': params_logistic},
-            'tma_smote': {'over_sampling': smote.over_sampling, 'params': params_logistic},
-            'tma_gan': {'over_sampling': gan.over_sampling, 'params': params_logistic},
-            'tma_gan2': {'over_sampling': gan.over_sampling2, 'params': params_logistic},
-        },
+        # 'lalonde': {
+        #     'dta': {'params': params_logistic},
+        #     'dta_smote': {'over_sampling': smote.over_sampling, 'params': params_logistic},
+        #     'dta_gan': {'over_sampling': gan.over_sampling, 'params': params_logistic,
+        #                 'params_over': params_gan_lalonde},
+        # },
+        # 'criteo': {
+        #     'dta': {'params': params_logistic},
+        #     'dta_smote': {'over_sampling': smote.over_sampling, 'params': params_logistic},
+        #     'dta_gan': {'over_sampling': gan.over_sampling, 'params': params_logistic,
+        #                 'params_over': params_gan_criteo},
+        # },
     },
     'wrapper': False,
     'niv': True,

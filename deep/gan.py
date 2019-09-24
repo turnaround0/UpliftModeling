@@ -4,17 +4,18 @@ from tensorflow import keras
 
 def build_generator(data_dim, latent_dim):
     model = keras.Sequential([
-        keras.layers.Dense(128, input_dim=latent_dim),
-        keras.layers.LeakyReLU(),
-
-        keras.layers.Dense(32),
-        keras.layers.LeakyReLU(),
+        keras.layers.Dense(64, input_dim=latent_dim, kernel_initializer='he_normal', activation='relu'),
+        keras.layers.Dense(64, kernel_initializer='he_normal', activation='relu'),
         keras.layers.BatchNormalization(),
-
-        keras.layers.Dense(16),
-        keras.layers.LeakyReLU(),
-
-        keras.layers.Dense(data_dim, activation='sigmoid')
+        keras.layers.Dense(64, kernel_initializer='he_normal', activation='relu'),
+        keras.layers.Dense(32, kernel_initializer='he_normal', activation='relu'),
+        keras.layers.BatchNormalization(),
+        keras.layers.Dense(32, kernel_initializer='he_normal', activation='relu'),
+        keras.layers.Dense(32, kernel_initializer='he_normal', activation='relu'),
+        keras.layers.BatchNormalization(),
+        keras.layers.Dense(16, kernel_initializer='he_normal', activation='relu'),
+        keras.layers.Dense(16, kernel_initializer='he_normal', activation='relu'),
+        keras.layers.Dense(data_dim, activation='sigmoid', kernel_initializer='he_normal'),
     ])
     # model.summary()
 
@@ -26,17 +27,18 @@ def build_generator(data_dim, latent_dim):
 
 def build_discriminator(data_dim):
     model = keras.Sequential([
-        keras.layers.Dense(128, input_dim=data_dim),
-        keras.layers.LeakyReLU(),
-
-        keras.layers.Dense(32),
-        keras.layers.LeakyReLU(),
-        keras.layers.Dropout(0.2),
-
-        keras.layers.Dense(16),
-        keras.layers.LeakyReLU(),
-
-        keras.layers.Dense(1, activation='sigmoid')
+        keras.layers.Dense(64, input_dim=data_dim, kernel_initializer='he_normal', activation='relu'),
+        keras.layers.Dense(64, kernel_initializer='he_normal', activation='relu'),
+        keras.layers.BatchNormalization(),
+        keras.layers.Dense(64, kernel_initializer='he_normal', activation='relu'),
+        keras.layers.Dense(32, kernel_initializer='he_normal', activation='relu'),
+        keras.layers.BatchNormalization(),
+        keras.layers.Dense(32, kernel_initializer='he_normal', activation='relu'),
+        keras.layers.Dense(32, kernel_initializer='he_normal', activation='relu'),
+        keras.layers.BatchNormalization(),
+        keras.layers.Dense(16, kernel_initializer='he_normal', activation='relu'),
+        keras.layers.Dense(16, kernel_initializer='he_normal', activation='relu'),
+        keras.layers.Dense(1, activation='sigmoid', kernel_initializer='he_normal'),
     ])
     # model.summary()
 
@@ -46,9 +48,9 @@ def build_discriminator(data_dim):
     return keras.models.Model(data, validity)
 
 
-def build_gan_network(learning_rate, beta_1, data_dim, latent_dim):
-    generator_optimizer = keras.optimizers.Adam(lr=learning_rate, beta_1=beta_1)
-    discriminator_optimizer = keras.optimizers.Adam(lr=learning_rate, beta_1=beta_1)
+def build_gan_network(gen_lr, dis_lr, beta_1, data_dim, latent_dim):
+    generator_optimizer = keras.optimizers.Adam(lr=gen_lr)
+    discriminator_optimizer = keras.optimizers.Adam(lr=dis_lr)
 
     # Build and compile the discriminator
     discriminator = build_discriminator(data_dim)

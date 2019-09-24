@@ -2,7 +2,7 @@ import pandas as pd
 from imblearn.over_sampling import SMOTE
 
 
-def over_sampling(X, T, Y):
+def over_sampling(X, T, Y, params_over=None):
     new_X = X.copy()
     new_X['T'] = T
 

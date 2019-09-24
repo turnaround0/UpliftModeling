@@ -95,7 +95,8 @@ def main():
 
                 over_sampling = config_set.get_option('over_sampling', dataset_name, model_name)
                 if over_sampling:
-                    X_train, T_train, Y_train = over_sampling(X_train, T_train, Y_train)
+                    params_over = config_set.get_option('params_over', dataset_name, model_name)
+                    X_train, T_train, Y_train = over_sampling(X_train, T_train, Y_train, params_over)
 
                 data_dict = get_tuning_data_dict(X_train, Y_train, T_train, dataset_name, p_test, seed)
                 search_space = config_set.get_search_space(dataset_name, model_name)
