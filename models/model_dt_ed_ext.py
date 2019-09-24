@@ -37,10 +37,25 @@ def fit(x, y, t, **kwargs):
         else:
             fit_list.append(model_dt.fit(x, y, t, **kwargs))
             df_ext = pd.DataFrame(ext_list).sort_values('abs_uplift', ascending=False)
+
+            if len(df_ext) == 1:
+                # If there is only one group after building tree, it should be halted.
+                u_value = 0
+                fit_list.pop()
+                fit_list.append(fit_list[0])
+                ext_idx_list = x.index.tolist()
+                ext_params['u_list'].append(u_value)
+                print('Before max round, tree has only one group.')
+                print('Train) Round, u value, rest, number of extraction:', idx, u_value, rest, len(ext_idx_list))
+                break
+
             df_ext['n_cumsum_samples'] = df_ext['n_samples'].cumsum()
             cut_len = rest * p_value
             cut_len_upper = df_ext[df_ext['n_cumsum_samples'] > cut_len]['n_cumsum_samples'].iloc[0]
             df_cut_ext = df_ext[df_ext['n_cumsum_samples'] <= cut_len_upper]
+            if len(df_cut_ext) == len(df_ext):
+                # Should not extract all data from training set
+                df_cut_ext = df_ext.iloc[: -1]
             u_value = df_cut_ext.iloc[-1]['abs_uplift']
 
             ext_idx_list = df_cut_ext['idx_list'].sum()
