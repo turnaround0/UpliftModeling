@@ -1,8 +1,5 @@
 import pandas as pd
 from deep.dnn import build_model, set_optimizer, init_seed
-from utils.utils import normalize, denormalize
-
-normalize_vars = None
 
 
 def fit(x, y, t, **kwargs):
@@ -11,7 +8,7 @@ def fit(x, y, t, **kwargs):
     batch_size = kwargs.get('batch_size')
     decay = kwargs.get('decay')
     method = kwargs.get('method')
-    activation = 'sigmoid' if method == 'logistic' else 'relu'
+    activation = 'sigmoid' if method == 'logistic' else 'linear'
 
     init_seed(1234)
 
@@ -19,13 +16,6 @@ def fit(x, y, t, **kwargs):
     for col_name in x.columns:
         df["Int_" + col_name] = x[col_name] * t
     df['treated'] = t
-
-    df, _ = normalize(df)
-    if method == 'linear':
-        global normalize_vars
-        y, normalize_vars = normalize(pd.DataFrame(y))
-    else:
-        normalize_vars = None
 
     model = build_model(df.shape[1], 1, activation)
     model = set_optimizer(model, lr, activation, decay)
@@ -48,11 +38,6 @@ def predict(obj, newdata, y_name='y', t_name='treated', **kwargs):
 
     pred_treat = [val[0] for val in obj.predict(df_treat)]
     pred_control = [val[0] for val in obj.predict(df_control)]
-
-    global normalize_vars
-    if normalize_vars is not None:
-        pred_treat = denormalize(pd.DataFrame(pred_treat, columns=['y']), normalize_vars)['y']
-        pred_control = denormalize(pd.DataFrame(pred_control, columns=['y']), normalize_vars)['y']
 
     pred_df = pd.DataFrame({
         "pr_y1_t1": pred_treat,
