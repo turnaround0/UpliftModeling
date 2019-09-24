@@ -1,5 +1,5 @@
 import pandas as pd
-from utils.utils import normalize, denormalize
+from utils.utils import normalize
 from deep.dnn import build_model, set_optimizer, init_seed
 
 normalize_vars = None
