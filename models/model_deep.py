@@ -18,12 +18,8 @@ def fit(x, y, t, **kwargs):
     df = x.copy()
     df['treated'] = t
 
-    df, _ = normalize(df)
-    if method == 'linear':
-        global normalize_vars
-        y, normalize_vars = normalize(pd.DataFrame(y))
-    else:
-        normalize_vars = None
+    global normalize_vars
+    df, normalize_vars = normalize(df)
 
     model = build_model(df.shape[1], 1, activation)
     model = set_optimizer(model, lr, activation, decay)
@@ -39,13 +35,12 @@ def predict(obj, newdata, **kwargs):
     df_treat['treated'] = 1
     df_control['treated'] = 0
 
+    global normalize_vars
+    df_treat, _ = normalize(df_treat, normalize_vars)
+    df_control, _ = normalize(df_control, normalize_vars)
+
     pred_treat = [val[0] for val in obj.predict(df_treat)]
     pred_control = [val[0] for val in obj.predict(df_control)]
-
-    global normalize_vars
-    if normalize_vars is not None:
-        pred_treat = denormalize(pd.DataFrame(pred_treat, columns=['y']), normalize_vars)['y']
-        pred_control = denormalize(pd.DataFrame(pred_control, columns=['y']), normalize_vars)['y']
 
     pred_df = pd.DataFrame({
         "pr_y1_t1": pred_treat,
