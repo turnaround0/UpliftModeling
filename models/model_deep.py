@@ -1,6 +1,6 @@
 import pandas as pd
 from utils.utils import normalize
-from deep.dnn import build_model, set_optimizer, init_seed
+from deep.dnn import build_model, set_optimizer, init_tf
 
 normalize_vars = None
 
@@ -13,7 +13,7 @@ def fit(x, y, t, **kwargs):
     method = kwargs.get('method')
     activation = 'sigmoid' if method == 'logistic' else 'linear'
 
-    init_seed(1234)
+    init_tf(1234)
 
     df = x.copy()
     df['treated'] = t

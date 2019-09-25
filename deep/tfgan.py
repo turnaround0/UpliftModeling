@@ -18,7 +18,7 @@ class GAN:
         self.framework = tf.contrib.framework
 
         # Prevent to use previous training data
-        # shutil.rmtree('./output/tf')
+        shutil.rmtree('./output/tf')
 
         tf.compat.v1.set_random_seed(seed)
         tf.compat.v1.reset_default_graph()

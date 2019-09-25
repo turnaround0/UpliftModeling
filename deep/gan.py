@@ -2,8 +2,6 @@ import numpy as np
 from tensorflow import keras
 import keras.backend as K
 
-gan_loss_type = 'wasserstein'
-
 
 def build_generator(data_dim, latent_dim):
     model = keras.Sequential([
@@ -54,8 +52,8 @@ def build_discriminator(data_dim):
     return keras.models.Model(data, validity)
 
 
-def build_gan_network(gen_lr, dis_lr, data_dim, latent_dim):
-    if gan_loss_type == 'wasserstein':
+def build_gan_network(gen_lr, dis_lr, data_dim, latent_dim, loss_type):
+    if loss_type == 'wasserstein':
         loss_fn = wasserstein_loss
     else:
         loss_fn = 'binary_crossentropy'
@@ -83,7 +81,7 @@ def build_gan_network(gen_lr, dis_lr, data_dim, latent_dim):
     # The combined model  (stacked generator and discriminator)
     # Trains the generator to fool the discriminator
     combined = keras.models.Model(z, validity)
-    combined.compile(loss=loss_fn, optimizer=generator_optimizer, metrics=['accuracy'])
+    combined.compile(loss=loss_fn, optimizer=generator_optimizer)
 
     return generator, discriminator, combined
 

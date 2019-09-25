@@ -1,9 +1,11 @@
 import numpy as np
 import pandas as pd
 
-from deep.dnn import init_seed
+from deep.dnn import init_tf
 from deep.gan import build_gan_network, train
 from utils.utils import num_class, split_class, normalize, denormalize
+
+stored_discriminator = None
 
 
 def over_sampling(X, T, Y, params_over):
@@ -14,11 +16,12 @@ def over_sampling(X, T, Y, params_over):
     latent_dim = params_over['noise_size']
     major_multiple = params_over['major_multiple']
     minor_ratio = params_over['minor_ratio']
+    loss_type = params_over['loss_type']
     seed = 1234
     max_loop = 10
     fake_multiple = 5
 
-    init_seed(seed)
+    init_tf(seed)
 
     train_df = pd.concat([X, T, Y], axis=1).copy()
     out_df = train_df.copy()
@@ -42,8 +45,11 @@ def over_sampling(X, T, Y, params_over):
     data_dim = train_df.shape[1]
 
     generator, discriminator, combined = \
-        build_gan_network(gen_lr, dis_lr, data_dim, latent_dim)
+        build_gan_network(gen_lr, dis_lr, data_dim, latent_dim, loss_type)
     train(train_df, epochs, batch_size, latent_dim, generator, discriminator, combined)
+
+    global stored_discriminator
+    stored_discriminator = discriminator
 
     for _ in range(max_loop):
         if n_rest_samples.sum() == 0:
@@ -72,3 +78,8 @@ def over_sampling(X, T, Y, params_over):
     Y = out_df['Y']
 
     return X, T, Y
+
+
+def get_stored_discriminator():
+    global stored_discriminator
+    return stored_discriminator

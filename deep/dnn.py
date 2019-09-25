@@ -27,5 +27,6 @@ def set_optimizer(model, lr, activation, decay):
     return model
 
 
-def init_seed(seed):
+def init_tf(seed):
     tf.compat.v1.set_random_seed(seed)
+    keras.backend.clear_session()

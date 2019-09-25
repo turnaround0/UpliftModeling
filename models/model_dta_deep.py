@@ -1,5 +1,5 @@
 import pandas as pd
-from deep.dnn import build_model, set_optimizer, init_seed
+from deep.dnn import build_model, set_optimizer, init_tf
 
 
 def fit(x, y, t, **kwargs):
@@ -10,7 +10,7 @@ def fit(x, y, t, **kwargs):
     method = kwargs.get('method')
     activation = 'sigmoid' if method == 'logistic' else 'linear'
 
-    init_seed(1234)
+    init_tf(1234)
 
     df = x.copy()
     for col_name in x.columns:
