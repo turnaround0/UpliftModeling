@@ -14,6 +14,8 @@ params_gan_hillstrom = {
     'epochs': 50,
     'noise_size': 64,
     'beta1': 0.5,
+    'major_multiple': 1,
+    'minor_ratio': 0.3,
 }
 params_gan_criteo = {
     'gen_lr': 1e-4,
@@ -21,23 +23,24 @@ params_gan_criteo = {
     'batch_size': 64,
     'epochs': 100,
     'noise_size': 64,
-    'beta1': 0.5,
+    'major_multiple': 2,
+    'minor_ratio': 1,
 }
 
 config = {
     'dataset': {
         'hillstrom': {
-            # 'dta': {'params': params_logistic},
-            # 'dta_smote': {'over_sampling': smote.over_sampling, 'params': params_logistic},
+            'dta': {'params': params_logistic},
+            'dta_smote': {'over_sampling': smote.over_sampling, 'params': params_logistic},
             'dta_gan': {'over_sampling': gan.over_sampling, 'params': params_logistic,
                         'params_over': params_gan_hillstrom},
         },
-        # 'criteo': {
-        #     'dta': {'params': params_logistic},
-        #     'dta_smote': {'over_sampling': smote.over_sampling, 'params': params_logistic},
-        #     'dta_gan': {'over_sampling': gan.over_sampling, 'params': params_logistic,
-        #                 'params_over': params_gan_criteo},
-        # },
+        'criteo': {
+            'dta': {'params': params_logistic},
+            'dta_smote': {'over_sampling': smote.over_sampling, 'params': params_logistic},
+            'dta_gan': {'over_sampling': gan.over_sampling, 'params': params_logistic,
+                        'params_over': params_gan_criteo},
+        },
     },
     'wrapper': False,
     'niv': True,
