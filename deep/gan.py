@@ -51,7 +51,7 @@ def build_discriminator(data_dim):
     return keras.models.Model(data, validity)
 
 
-def build_gan_network(gen_lr, dis_lr, beta_1, data_dim, latent_dim):
+def build_gan_network(gen_lr, dis_lr, data_dim, latent_dim):
     generator_optimizer = keras.optimizers.Adam(lr=gen_lr)
     discriminator_optimizer = keras.optimizers.Adam(lr=dis_lr)
 
