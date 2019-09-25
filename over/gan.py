@@ -3,53 +3,72 @@ import pandas as pd
 
 from deep.dnn import init_seed
 from deep.gan import build_gan_network, train
-from utils.utils import num_class, normalize, denormalize
+from utils.utils import num_class, split_class, normalize, denormalize
 
 
 def over_sampling(X, T, Y, params_over):
     gen_lr = params_over['gen_lr']
     dis_lr = params_over['dis_lr']
-    beta1 = params_over['beta1']
     batch_size = params_over['batch_size']
     epochs = params_over['epochs']
     latent_dim = params_over['noise_size']
+    major_multiple = params_over['major_multiple']
+    minor_ratio = params_over['minor_ratio']
     seed = 1234
-    max_loop = 2
-    multiply_samples = 2
+    max_loop = 10
+    fake_multiple = 5
 
     init_seed(seed)
 
-    X, T, Y = X.copy(), T.copy(), Y.copy()
-    backup_X, backup_Y, backup_T = X.copy(), Y.copy(), T.copy()
+    train_df = pd.concat([X, T, Y], axis=1).copy()
+    out_df = train_df.copy()
 
-    df = pd.concat([X, T, Y], axis=1)
+    n_samples = pd.Series(num_class(train_df, 'Y', 'T'))
+    print('Initial samples:', n_samples.tolist())
 
-    n_samples_list = pd.Series(num_class(df, 'Y', 'T'))
-    target_samples = n_samples_list.max() * 2
-    n_target_samples_list = target_samples - n_samples_list
+    num_major = n_samples.max() * major_multiple
+    idx_major = n_samples.argmax()
+    num_minor = num_major * minor_ratio
 
-    df, normalize_vars = normalize(df)
-    data_dim = df.shape[1]
+    n_rest_samples = [num_minor] * len(n_samples)
+    n_rest_samples[idx_major] = num_major
+    n_rest_samples = pd.Series(n_rest_samples).round().astype('int32')
+    n_rest_samples -= n_samples
+    n_rest_samples[n_rest_samples < 0] = 0
+    num_fake_data = n_rest_samples.sum() * fake_multiple
+    print('Initial rest samples:', n_rest_samples.tolist())
+
+    train_df, normalize_vars = normalize(train_df)
+    data_dim = train_df.shape[1]
 
     generator, discriminator, combined = \
-        build_gan_network(gen_lr, dis_lr, beta1, data_dim, latent_dim)
-    train(df, epochs, batch_size, latent_dim, generator, discriminator, combined)
+        build_gan_network(gen_lr, dis_lr, data_dim, latent_dim)
+    train(train_df, epochs, batch_size, latent_dim, generator, discriminator, combined)
 
     for _ in range(max_loop):
-        num_fake_data = n_target_samples_list.sum() * multiply_samples
-        print('num_fake_data:', num_fake_data)
-
+        if n_rest_samples.sum() == 0:
+            break
         noise = np.random.normal(0, 1, (num_fake_data, latent_dim))
-        generated_data = generator.predict(noise)
-        generated_df = pd.DataFrame(generated_data, columns=df.columns)
-        generated_df = denormalize(generated_df, normalize_vars)
-        generated_df = generated_df.round()
+        gen_data = generator.predict(noise)
+        gen_df = pd.DataFrame(gen_data, columns=train_df.columns)
+        gen_df = denormalize(gen_df, normalize_vars)
+        gen_df = gen_df.round()
 
-        tr, tn, cr, cn = num_class(generated_df, 'Y', 'T')
+        tr, tn, cr, cn = num_class(gen_df, 'Y', 'T')
         print('Generated data (tr, tn, cr, cn):', tr, tn, cr, cn)
 
-        backup_X = pd.concat([backup_X, generated_df.drop(['T', 'Y'], axis=1)])
-        backup_T = pd.concat([backup_T, generated_df['T']])
-        backup_Y = pd.concat([backup_Y, generated_df['Y']])
+        gen_df_list = split_class(gen_df, 'Y', 'T')
+        for idx, df in enumerate(gen_df_list):
+            n_sel_samples = df.shape[0] if df.shape[0] < n_rest_samples[idx] else n_rest_samples[idx]
+            n_rest_samples[idx] -= n_sel_samples
+            sel_df = gen_df.iloc[: n_sel_samples]
+            out_df = pd.concat([out_df, sel_df])
 
-    return backup_X, backup_T, backup_Y
+        print('Rest samples:', n_rest_samples.tolist())
+
+    out_df = out_df.reset_index(drop=True).sample(frac=1)
+    X = out_df.drop(['T', 'Y'], axis=1)
+    T = out_df['T']
+    Y = out_df['Y']
+
+    return X, T, Y
