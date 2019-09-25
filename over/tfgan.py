@@ -1,6 +1,6 @@
 import pandas as pd
 
-from deep.gan2 import GAN
+from deep.tfgan import GAN
 from utils.utils import num_class, split_class, normalize, denormalize
 
 
