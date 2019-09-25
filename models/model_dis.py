@@ -1,6 +1,5 @@
 import pandas as pd
 from over.gan import get_stored_discriminator
-from over import gan
 
 
 def fit(x, y, t, **kwargs):
@@ -20,8 +19,8 @@ def predict(obj, newdata, **kwargs):
     pred_df = pd.concat(pred_list, axis=1)
     pred_df.columns = ['tr', 'tn', 'cr', 'cn']
 
-    pred_treat = pred_df['tr'] / pred_df['tr'] + pred_df['tn']
-    pred_control = pred_df['cr'] / pred_df['cr'] + pred_df['cn']
+    pred_treat = pred_df['tr'].div(pred_df['tr'] + pred_df['tn']).fillna(0)
+    pred_control = pred_df['cr'].div(pred_df['cr'] + pred_df['cn']).fillna(0)
 
     pred_df = pd.DataFrame({
         "pr_y1_t1": pred_treat,
