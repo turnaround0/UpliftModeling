@@ -1,9 +1,8 @@
 import numpy as np
 import pandas as pd
 
-# from deep.dnn import init_seed
-# from deep.gan import build_gan_network, train
-from deep.gan2 import GAN
+from deep.dnn import init_seed
+from deep.gan import build_gan_network, train
 from utils.utils import num_class, split_class, normalize, denormalize
 
 
@@ -18,6 +17,8 @@ def over_sampling(X, T, Y, params_over):
     seed = 1234
     max_loop = 10
     fake_multiple = 5
+
+    init_seed(seed)
 
     train_df = pd.concat([X, T, Y], axis=1).copy()
     out_df = train_df.copy()
@@ -38,14 +39,17 @@ def over_sampling(X, T, Y, params_over):
     print('Initial rest samples:', n_rest_samples.tolist())
 
     train_df, normalize_vars = normalize(train_df)
+    data_dim = train_df.shape[1]
 
-    gan = GAN(train_df, latent_dim, gen_lr, dis_lr, batch_size, epochs, seed)
-    gan.train()
+    generator, discriminator, combined = \
+        build_gan_network(gen_lr, dis_lr, data_dim, latent_dim)
+    train(train_df, epochs, batch_size, latent_dim, generator, discriminator, combined)
 
     for _ in range(max_loop):
         if n_rest_samples.sum() == 0:
             break
-        gen_data = gan.predict(num_fake_data)
+        noise = np.random.normal(0, 1, (num_fake_data, latent_dim))
+        gen_data = generator.predict(noise)
         gen_df = pd.DataFrame(gen_data, columns=train_df.columns)
         gen_df = denormalize(gen_df, normalize_vars)
         gen_df = gen_df.round()
