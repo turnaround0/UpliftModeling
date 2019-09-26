@@ -30,7 +30,7 @@ config = {
                     'params_over': params_tfgan_hillstrom, 'params': {}},
         },
         'criteo': {
-            # 'dta': {},
+            'dta': {},
             'dis': {'model': model_dis, 'over_sampling': gan.over_sampling,
                     'params_over': params_tfgan_criteo, 'params': {}},
         },
