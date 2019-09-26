@@ -31,15 +31,13 @@ and it will display some plots with the loaded data.
 /config/config.py file has definitions of configuration sets.
 ``` python
 config_set = {
-    'test_all': test_all.config,
-    'test': test.config,
-    'over': over.config,
-    'mlai': mlai.config,
-    'ext': ext.config,
-    'focus': focus.config,
-    'deep': deep.config,
-    'ext2': ext2.config,
-    'focus2': focus2.config,
+    'test_all': test_all.config,  # Experiment for the article
+    'over': over.config,          # Over-sampling test
+    'mlai': mlai.config,          # Modified GLAI test
+    'ext': ext.config,            # Tree extraction method
+    'focus': focus.config,        # Tree focus method
+    'deep': deep.config,          # DNN test (with DTA or without DTA)
+    'dis': dis.config,            # GAN Discriminator test
 }
 ```
 Each configuration was defined on /config/\*.py files.<br>
