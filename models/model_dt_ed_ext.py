@@ -34,6 +34,7 @@ def fit(x, y, t, **kwargs):
                 fit_list.append(fit_list[0])
             ext_idx_list = x.index.tolist()
             u_value = 0
+            rest = 0
         else:
             fit_list.append(model_dt.fit(x, y, t, **kwargs))
             df_ext = pd.DataFrame(ext_list).sort_values('abs_uplift', ascending=False)
@@ -41,8 +42,10 @@ def fit(x, y, t, **kwargs):
             if len(df_ext) == 1:
                 # If there is only one group after building tree, it should be halted.
                 u_value = 0
-                fit_list.pop()
-                fit_list.append(fit_list[0])
+                rest = 0
+                if idx > 0:
+                    fit_list.pop()
+                    fit_list.append(fit_list[0])
                 ext_idx_list = x.index.tolist()
                 ext_params['u_list'].append(u_value)
                 print('Before max round, tree has only one group.')
