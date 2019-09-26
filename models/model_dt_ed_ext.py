@@ -11,7 +11,6 @@ def set_params(max_round, p_value):
     ext_params = {
         'max_round': max_round,
         'p_value': p_value,
-        'u_list': [],
     }
     print('Extraction params:', ext_params)
 
@@ -19,6 +18,7 @@ def set_params(max_round, p_value):
 def fit(x, y, t, **kwargs):
     kwargs.update({'method': 'ed'})
     fit_list = []
+    u_list = []
     rest = len(y)
 
     full_x, full_y, full_t = x, y, t
@@ -47,7 +47,7 @@ def fit(x, y, t, **kwargs):
                     fit_list.pop()
                     fit_list.append(fit_list[0])
                 ext_idx_list = x.index.tolist()
-                ext_params['u_list'].append(u_value)
+                u_list.append(u_value)
                 print('Before max round, tree has only one group.')
                 print('Train) Round, u value, rest, number of extraction:', idx, u_value, rest, len(ext_idx_list))
                 break
@@ -67,10 +67,10 @@ def fit(x, y, t, **kwargs):
             t = t.drop(ext_idx_list)
             rest -= len(ext_idx_list)
 
-        ext_params['u_list'].append(u_value)
+        u_list.append(u_value)
         print('Train) Round, u value, rest, number of extraction:', idx, u_value, rest, len(ext_idx_list))
 
-    return fit_list
+    return zip(fit_list, u_list)
 
 
 def predict(obj, newdata, **kwargs):
@@ -79,8 +79,7 @@ def predict(obj, newdata, **kwargs):
     meet_list = []
     final_pred = None
     rest = len(newdata)
-    for idx, model_fit in enumerate(obj):
-        u_value = ext_params['u_list'][idx]
+    for idx, (model_fit, u_value) in enumerate(obj):
         pred = model_dt.predict(model_fit, newdata, **kwargs)
         meet = pd.Series(np.abs(pred['pr_y1_t1'] - pred['pr_y1_t0']) >= u_value)
 
