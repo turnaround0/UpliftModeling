@@ -5,10 +5,10 @@ params_gan_hillstrom = {
     'gen_lr': 1e-4,
     'dis_lr': 7e-6,
     'batch_size': 256,
-    'epochs': 70,
+    'epochs': 100,
     'noise_size': 64,
-    'major_multiple': 1.5,
-    'minor_ratio': 0.5,
+    'major_multiple': 0,
+    'minor_ratio': 0,
     'loss_type': 'vanilla',
 }
 params_gan_criteo = {
@@ -17,8 +17,8 @@ params_gan_criteo = {
     'batch_size': 64,
     'epochs': 100,
     'noise_size': 64,
-    'major_multiple': 1.5,
-    'minor_ratio': 0.5,
+    'major_multiple': 0,
+    'minor_ratio': 0,
     'loss_type': 'vanilla',
 }
 
