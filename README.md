@@ -49,7 +49,12 @@ config = {
     'dataset': {
         'hillstrom': {
             'dta': {},
-            'dta_deep': {'model': model_dta_deep, 'params': {'method': 'logistic'}},
+            'deep': {'model': model_dta_deep,
+                     'params': {'method': 'logistic', 'lr': 1e-3, 'epochs': 100,
+                                'batch_size': 256, 'decay': 1e-2}},
+            'dta_deep': {'model': model_dta_deep,
+                         'params': {'method': 'logistic', 'lr': 1e-3, 'epochs': 100,
+                                    'batch_size': 256, 'decay': 1e-2}},
         },
 ```
 
@@ -71,10 +76,9 @@ config = {
         'hillstrom': {
             'dt_ed': {'model': model_dt_ed, 'params': params_tree_hillstrom},
             'dt_ed_ext': {'model': model_dt_ed_ext, 'params': params_tree_hillstrom,
-                          'max_round': 4, 'u_list': [2.0, 1.0, 0.5, -float('INF')]},
-            'tma': {},
-            'tma_ext': {'model': model_tma_ext, 'max_round': 3, 'u_list': [1.0, 0.7, -float('INF')]},
+                          'max_round': 4, 'p_value': 0.2},
         },
+        ...
 ```
 
 Each model should provide fit and predict methods.<br>
@@ -96,11 +100,12 @@ please add /over/{filename}.py file and modify configuration file.
 config = {
     'dataset': {
         'hillstrom': {
-            'tma': {'params': params_logistic},
-            # 'tma_simple': {'over_sampling': simple.over_sampling, 'params': params_logistic},
-            'tma_smote': {'over_sampling': smote.over_sampling, 'params': params_logistic},
-            'tma_gan': {'over_sampling': gan.over_sampling, 'params': params_logistic},
-            'tma_gan2': {'over_sampling': gan.over_sampling2, 'params': params_logistic},
+            'dta': {'params': params_logistic},
+            'dta_smote': {'over_sampling': smote.over_sampling, 'params': params_logistic},
+            'dta_gan': {'over_sampling': gan.over_sampling, 'params': params_logistic,
+                        'params_over': params_gan_hillstrom},
+            'dta_tfgan': {'over_sampling': tfgan.over_sampling, 'params': params_logistic,
+                          'params_over': params_tfgan_hillstrom},
         },
         ...
 ```
@@ -113,9 +118,8 @@ you can find tree extraction method codes.
  
 ### 7. Others (/)
 uplift.py: main method<br>
-dataset.py: load dataset and load/save output json files<br>
-measure.py: measure performance and get Qini values<br>
-plot.py: display test results by graphs and tables<br>
-preprocessing.py: pre-process input data<br>
-tune.py: codes related with parameter tuning<br>
-uplift.py: return uplift value of given dataset
+/dataset: load dataset and preprocessing<br>
+/deep: deep learning code (DNN, GAN, TFGAN)<br>
+/experiment: measure performance, get Qini values and display test results<br>
+/tune: tuning algorithm codes (NIV, general wrapper approach, parameter tuning)<br>
+/utils: helper methods like loading or saving json<br>
