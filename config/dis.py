@@ -2,8 +2,8 @@ from models import model_dis
 from over import gan
 
 params_tfgan_hillstrom = {
-    'gen_lr': 1e-4,
-    'dis_lr': 7e-6,
+    'gen_lr': 7e-4,
+    'dis_lr': 2e-5,
     'batch_size': 256,
     'epochs': 100,
     'noise_size': 64,
