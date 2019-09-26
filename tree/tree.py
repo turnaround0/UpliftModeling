@@ -198,6 +198,10 @@ def build_tree(df, cols, predict_attr='Y', treatment_attr='T',
     and a prediction attribute
     """
     if depth == 1:
+        arg_random_seed = kwargs.get('random_seed')
+        if arg_random_seed is not None:
+            random_seed = arg_random_seed
+
         np.random.seed(random_seed)
 
     if mtry is None:
