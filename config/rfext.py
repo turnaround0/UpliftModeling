@@ -28,7 +28,7 @@ config = {
             #               'max_round': 4, 'p_value': 0.2},
             'urf_ed': {'model': model_rf_ed, 'params': params_tree_hillstrom},
             'urf_ed_ext': {'model': model_rf_ed_ext, 'params': params_tree_hillstrom,
-                           'max_round': 4, 'p_value': 0.12},
+                           'max_round': 3, 'p_value': 0.05},
         },
         'lalonde': {
             # 'dt_ed': {'model': model_dt_ed, 'params': params_tree_lalonde},
@@ -36,7 +36,7 @@ config = {
             #               'max_round': 7, 'p_value': 0.1},
             'urf_ed': {'model': model_rf_ed, 'params': params_tree_lalonde},
             'urf_ed_ext': {'model': model_rf_ed_ext, 'params': params_tree_lalonde,
-                           'max_round': 7, 'p_value': 0.06},
+                           'max_round': 4, 'p_value': 0.03},
         },
         'criteo': {
             # 'dt_ed': {'model': model_dt_ed, 'params': params_tree_criteo},
@@ -44,7 +44,7 @@ config = {
             #               'max_round': 7, 'p_value': 0.1},
             'urf_ed': {'model': model_rf_ed, 'params': params_tree_criteo},
             'urf_ed_ext': {'model': model_rf_ed_ext, 'params': params_tree_criteo,
-                           'max_round': 7, 'p_value': 0.06},
+                           'max_round': 4, 'p_value': 0.03},
         },
     },
     'wrapper': False,
