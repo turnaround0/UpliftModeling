@@ -36,6 +36,7 @@ def main():
     parser = argparse.ArgumentParser(description='***** Uplift modeling *****')
     parser.add_argument('-d', action='store_true', help='Draw: Only loading json files and display plots')
     parser.add_argument('-s', action='store', help='Set: Config set name (ex: -s test_all')
+    parser.add_argument('-t', action='store_true', help='Draw only table')
     args = parser.parse_args()
 
     if args.s:
@@ -47,6 +48,10 @@ def main():
     # Display only plots and tables with -d option
     if args.d:
         plot_data(dataset_names)
+        exit()
+
+    if args.t:
+        plot_data(dataset_names, only_table=True)
         exit()
 
     for dataset_name in dataset_names:
