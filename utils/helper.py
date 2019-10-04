@@ -35,9 +35,9 @@ def get_uplift(dataset_name, T, Y):
         return uplift
 
 
-def plot_data(dataset_names):
+def plot_data(dataset_names, only_table=False):
     for dataset_name in dataset_names:
         print('*** Dataset name:', dataset_name)
         qini_dict = load_json(dataset_name + '_qini')
         var_sel_dict = load_json(dataset_name + '_val_sel')
-        plot_all(dataset_name, qini_dict, var_sel_dict)
+        plot_all(dataset_name, qini_dict, var_sel_dict, only_table)
