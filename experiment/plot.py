@@ -171,10 +171,13 @@ def plot_fig9(dataset_name, qini_dict):
     plt.show()
 
 
-def plot_all(dataset_name, qini_dict, var_sel_dict):
-    if dataset_name != 'criteo':
-        plot_fig5(dataset_name, var_sel_dict)
-    plot_table6(dataset_name, qini_dict)
-    plot_fig7(dataset_name, qini_dict)
-    plot_fig8(dataset_name, qini_dict)
-    plot_fig9(dataset_name, qini_dict)
+def plot_all(dataset_name, qini_dict, var_sel_dict, only_table=False):
+    if only_table:
+        plot_table6(dataset_name, qini_dict)
+    else:
+        if dataset_name != 'criteo':
+            plot_fig5(dataset_name, var_sel_dict)
+        plot_table6(dataset_name, qini_dict)
+        plot_fig7(dataset_name, qini_dict)
+        plot_fig8(dataset_name, qini_dict)
+        plot_fig9(dataset_name, qini_dict)
